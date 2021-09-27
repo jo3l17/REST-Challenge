@@ -1,0 +1,19 @@
+{
+  "name": "rest-challenge",
+  "version": "1.0.0",
+  "description": "rest challenge for ravn development nerdery program",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jo3l17/REST-Challenge.git"
+  },
+  "author": "Joel Valdez, Juan Pejerrey",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jo3l17/REST-Challenge/issues"
+  },
+  "homepage": "https://github.com/jo3l17/REST-Challenge#readme"
+}
