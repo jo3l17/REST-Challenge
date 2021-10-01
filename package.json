@@ -6,7 +6,9 @@
   "scripts": {
     "test": "jest",
     "format": "prettier --write \"**/*.+(js|json|ts)\"",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "migrate": "prisma migrate dev --preview-feature",
+    "dev": "nodemon ./src/index.ts"
   },
   "repository": {
     "type": "git",
@@ -19,7 +21,9 @@
   },
   "homepage": "https://github.com/jo3l17/REST-Challenge#readme",
   "devDependencies": {
+    "@types/express": "^4.17.13",
     "@types/jest": "^27.0.2",
+    "@types/morgan": "^1.9.3",
     "@types/node": "^16.10.2",
     "@typescript-eslint/eslint-plugin": "^4.32.0",
     "@typescript-eslint/parser": "^4.32.0",
@@ -29,11 +33,17 @@
     "eslint-plugin-import": "^2.24.2",
     "eslint-plugin-prettier": "^4.0.0",
     "jest": "^27.2.4",
+    "nodemon": "^2.0.13",
     "prettier": "^2.4.1",
     "prisma": "^3.1.1",
     "ts-jest": "^27.0.5",
     "ts-node": "^10.2.1",
     "typescript": "^4.4.3"
   },
-  "dependencies": {}
+  "dependencies": {
+    "@prisma/client": "^3.1.1",
+    "body-parser": "^1.19.0",
+    "express": "^4.17.1",
+    "morgan": "^1.10.0"
+  }
 }

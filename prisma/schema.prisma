@@ -14,10 +14,11 @@ model User {
   id              Int @id @default(autoincrement())
   name            String @db.VarChar(50)
   email           String @unique
-  temporalEmail   String
+  temporalEmail   String?
   HASH            String
   SALT            String
   verifiedAt      DateTime?
+  createdAt       DateTime @default(now())
   updatedAt       DateTime? @updatedAt
   role            String @db.VarChar(20)
   tokens          Token[]
