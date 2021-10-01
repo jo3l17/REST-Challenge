@@ -1,0 +1,99 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id              Int @id @default(autoincrement())
+  name            String @db.VarChar(50)
+  email           String @unique
+  temporalEmail   String
+  HASH            String
+  SALT            String
+  verifiedAt      DateTime?
+  updatedAt       DateTime? @updatedAt
+  role            String @db.VarChar(20)
+  tokens          Token[]
+  account         Account?
+}
+
+model Account {
+  id              Int @id @default(autoincrement())
+  isEmailPublic   Boolean
+  isNamePublic    Boolean
+  posts           Post[]
+  comments        Comments[]
+  user            User @relation(fields: [userId],references: [id])
+  userId          Int
+}
+
+model Token {
+  id              Int @id @default(autoincrement())
+  token           String
+  expirationDate  DateTime
+  createdAt       DateTime @default(now())
+  user            User @relation(fields: [userId],references: [id])
+  userId          Int
+}
+
+model Post {
+  id              Int @id @default(autoincrement())
+  title           String @db.VarChar(100)
+  content         String
+  published       Boolean
+  likes           Int @default(0)
+  dislikes        Int @default(0)
+  likedBy         Int[]
+  dislikedBy      Int[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime? @updatedAt
+  account         Account @relation(fields: [accountId],references: [id])
+  accountId       Int
+  comments        Comments[]
+}
+
+model Comments {
+  id              Int @id @default(autoincrement())
+  content         String
+  published       Boolean
+  likes           Int @default(0)
+  dislikes        Int @default(0)
+  likedBy         Int[]
+  dislikedBy      Int[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime? @updatedAt
+  account         Account @relation(fields: [accountId],references: [id])
+  accountId       Int
+  post            Post @relation(fields: [postId],references: [id])
+  postId          Int
+}
+
+model ReportComment {
+  id              Int @id @default(autoincrement())
+  title           String @db.VarChar(100)
+  content         String
+  createdAt       DateTime @default(now())
+  comment         Comment @relation(fields: [commentId],references: [id])
+  commentId       Int
+  account         Account @relation(fields: [accountId],references: [id])
+  accountId       Int
+}
+
+model ReportPost {
+  id              Int @id @default(autoincrement())
+  title           String @db.VarChar(100)
+  content         String
+  createdAt       DateTime @default(now())
+  post            Post @relation(fields: [postId],references: [id])
+  postId          Int
+  account         Account @relation(fields: [accountId],references: [id])
+  accountId       Int
+}
