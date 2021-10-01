@@ -20,7 +20,7 @@ model User {
   verifiedAt      DateTime?
   createdAt       DateTime @default(now())
   updatedAt       DateTime? @updatedAt
-  role            String @db.VarChar(20)
+  role            Role @default(user)
   tokens          Token[]
   account         Account?
 }
@@ -35,6 +35,8 @@ model Account {
   userId          Int
   reportComments  ReportComment[]
   reportPosts     ReportPost[]
+  postLikes       PostLike[]
+  commentLikes    CommentLike[]
 }
 
 model Token {
@@ -53,8 +55,7 @@ model Post {
   published       Boolean
   likes           Int @default(0)
   dislikes        Int @default(0)
-  likedBy         Int[]
-  dislikedBy      Int[]
+  likedBy         PostLike[]
   createdAt       DateTime @default(now())
   updatedAt       DateTime? @updatedAt
   account         Account @relation(fields: [accountId],references: [id])
@@ -63,15 +64,22 @@ model Post {
   reports         ReportPost[]
 }
 
+model PostLike {
+  id              Int @id @default(autoincrement())
+  account         Account @relation(fields: [accountId],references: [id])
+  accountId       Int
+  post            Post @relation(fields: [postId],references: [id])
+  postId          Int
+  type            Actions
+}
+
 model Comment {
   id              Int @id @default(autoincrement())
   content         String
   published       Boolean
   likes           Int @default(0)
   dislikes        Int @default(0)
-  likedBy         Int[]
-  dislikedBy      Int[]
-
+  likedBy         CommentLike[]
   createdAt       DateTime @default(now())
   updatedAt       DateTime? @updatedAt
   account         Account @relation(fields: [accountId],references: [id])
@@ -80,6 +88,16 @@ model Comment {
   postId          Int
   reports         ReportComment[]
 }
+
+model CommentLike {
+  id              Int @id @default(autoincrement())
+  account         Account @relation(fields: [accountId],references: [id])
+  accountId       Int
+  comment         Comment @relation(fields: [commentId],references: [id])
+  commentId       Int
+  type            Actions
+}
+
 
 model ReportComment {
   id              Int @id @default(autoincrement())
@@ -101,4 +119,15 @@ model ReportPost {
   postId          Int
   account         Account @relation(fields: [accountId],references: [id])
   accountId       Int
+}
+
+
+enum Actions {
+  like
+  dislike
+}
+
+enum Role {
+  user
+  moderator
 }
