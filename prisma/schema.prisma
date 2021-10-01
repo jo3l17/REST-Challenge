@@ -29,9 +29,11 @@ model Account {
   isEmailPublic   Boolean
   isNamePublic    Boolean
   posts           Post[]
-  comments        Comments[]
+  comments        Comment[]
   user            User @relation(fields: [userId],references: [id])
   userId          Int
+  reportComments  ReportComment[]
+  reportPosts     ReportPost[]
 }
 
 model Token {
@@ -56,10 +58,11 @@ model Post {
   updatedAt       DateTime? @updatedAt
   account         Account @relation(fields: [accountId],references: [id])
   accountId       Int
-  comments        Comments[]
+  comments        Comment[]
+  reports         ReportPost[]
 }
 
-model Comments {
+model Comment {
   id              Int @id @default(autoincrement())
   content         String
   published       Boolean
@@ -74,6 +77,7 @@ model Comments {
   accountId       Int
   post            Post @relation(fields: [postId],references: [id])
   postId          Int
+  reports         ReportComment[]
 }
 
 model ReportComment {
