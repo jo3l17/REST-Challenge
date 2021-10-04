@@ -1,8 +1,7 @@
 import bcrypt from 'bcrypt';
 import { expiresIn, jwtData, jwtPayload, secret } from '../utils/jwt.util';
-import jwt, { TokenExpiredError } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import { PrismaClient } from '.prisma/client';
-import { Request, Response } from 'express';
 const prisma = new PrismaClient();
 
 const validatePassword = async (dataPassword: string, userPassword: string) => {

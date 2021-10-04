@@ -25,7 +25,7 @@ const loginCheck = async (req: Request, res: Response, next: NextFunction) => {
 const protect = async (req: Request, res: Response, next: NextFunction) => {
   const bearer = req.headers.authorization
   if (!bearer || !bearer.startsWith('Bearer ')) {
-    return res.status(401).end({ message: 'no auth' })
+    return res.status(401).send({ message: 'no auth' })
   }
 
   const token = bearer.split('Bearer ')[1].trim()
@@ -42,7 +42,7 @@ const protect = async (req: Request, res: Response, next: NextFunction) => {
 
   const user = await findById(payload.id)
   if (!user) {
-    return res.status(401).end({ message: 'no user' })
+    return res.status(401).send({ message: 'no user' })
   }
   req.body.user = user;
   next();
