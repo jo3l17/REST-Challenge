@@ -21,13 +21,13 @@ const signup = async (req: Request, res: Response) => {
 
     console.log(e);
 
-    return res.status(500).send('there was an error')
+    return res.status(500).send({ message: 'there was an error' })
   }
 }
 
 const login = async (req: Request, res: Response) => {
-  const data = req.body;
-  const user = await findByEmail(data.email);
+  const { email, password } = req.body;
+  const user = await findByEmail(email);
 
   if (!user) {
     return res.status(400).send({ message: 'email not registered' });
@@ -37,7 +37,7 @@ const login = async (req: Request, res: Response) => {
     return res.status(400).send({ message: 'email not verified' });
   }
 
-  const passwordExists = await validatePassword(data.password, user.HASH)
+  const passwordExists = await validatePassword(password, user.HASH)
 
   if (!passwordExists) {
     return res.status(400).send({ message: 'The email or password are wrong' });

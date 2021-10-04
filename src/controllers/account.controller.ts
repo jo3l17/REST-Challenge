@@ -11,7 +11,7 @@ const verifyUser = async (req: Request, res: Response) => {
     const payload = await verifyToken(token);
     await updateVerification(payload.id);
     if (payload.role === 'user') {
-      const account = await prisma.account.create({ data: { userId: payload.id, isEmailPublic: false, isNamePublic: false } })
+      const account = await prisma.account.create({ data: { userId: payload.id } })
     }
     return res.status(400).send({ message: 'user verified' });
   } catch (e) {
