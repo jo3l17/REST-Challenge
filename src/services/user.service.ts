@@ -18,9 +18,15 @@ const findById = async (id: number) => {
 }
 
 const updateVerification = async (id: number) => {
-  const user = await prisma.user.update({
+  await prisma.user.update({
     where: { id }, data: { verifiedAt: new Date() }
   })
 }
 
-export { findByEmail, findById, updateVerification }
+const updatePassword = async (id: number, HASH: string) => {
+  await prisma.user.update({
+    where: { id }, data: { HASH }
+  })
+}
+
+export { findByEmail, findById, updateVerification, updatePassword }

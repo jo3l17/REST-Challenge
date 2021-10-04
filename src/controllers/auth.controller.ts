@@ -1,8 +1,9 @@
 import { PrismaClient } from ".prisma/client"
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 import { Request, Response } from "express";
-import { findByEmail } from "../services/user.service";
-import { createToken, validatePassword } from "../services/auth.service";
+import { findByEmail, updatePassword } from "../services/user.service";
+import { createToken, generateToken, validatePassword, verifyToken } from "../services/auth.service";
+import bcrypt from 'bcrypt'
 
 const prisma = new PrismaClient();
 
@@ -47,4 +48,32 @@ const login = async (req: Request, res: Response) => {
   return res.status(200).send(token);
 }
 
-export { signup, login }
+const passwordRecover = async (req: Request, res: Response) => {
+  const { email } = req.body;
+  const user = await findByEmail(email);
+
+  if (!user) {
+    return res.status(400).send({ message: 'email not registered' });
+  }
+
+  if (!user.verifiedAt) {
+    return res.status(400).send({ message: 'email not verified' });
+  }
+
+  const token = await generateToken({ id: user.id, role: user.role });
+
+  return res.status(200).send({ token });
+}
+
+const passwordChange = async (req: Request, res: Response) => {
+  const { token } = req.params
+  const { password } = req.body
+  const payload = await verifyToken(token)
+  const HASH = await bcrypt.hash(password, 12)
+
+  await updatePassword(payload.id, HASH);
+
+  return res.status(200).send({ message: 'password updated' });
+}
+
+export { signup, login, passwordRecover, passwordChange }
