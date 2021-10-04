@@ -1,6 +1,8 @@
 import { Router } from "express";
-import { createUser } from "../controllers/auth.controller";
+import { verify } from "../controllers/account.controller";
 
 const accountRouter: Router = Router();
+
+accountRouter.patch('/:token/verify', verify)
 
 export { accountRouter };
