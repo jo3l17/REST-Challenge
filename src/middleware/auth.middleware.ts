@@ -1,5 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 import bcrypt from 'bcrypt'
+import { verifyToken } from "../services/auth.service";
+import { TokenExpiredError } from "jsonwebtoken";
+import { findById } from "../services/user.service";
 
 const hashPassword = async (req: Request, res: Response, next: NextFunction) => {
   const { password, name, email } = req.body
@@ -19,4 +22,30 @@ const loginCheck = async (req: Request, res: Response, next: NextFunction) => {
   next();
 }
 
-export { hashPassword, loginCheck }
+const protect = async (req: Request, res: Response, next: NextFunction) => {
+  const bearer = req.headers.authorization
+  if (!bearer || !bearer.startsWith('Bearer ')) {
+    return res.status(401).end({ message: 'no auth' })
+  }
+
+  const token = bearer.split('Bearer ')[1].trim()
+  let payload;
+  try {
+    payload = await verifyToken(token);
+  } catch (e) {
+    console.log(e);
+    if (e instanceof TokenExpiredError) {
+      return res.status(500).send({ message: 'token expired' })
+    }
+    return res.status(500).send({ message: 'token error' })
+  }
+
+  const user = await findById(payload.id)
+  if (!user) {
+    return res.status(401).end({ message: 'no user' })
+  }
+  req.body.user = user;
+  next();
+}
+
+export { hashPassword, loginCheck, protect }
