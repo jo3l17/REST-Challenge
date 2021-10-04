@@ -26,8 +26,8 @@ model User {
 
 model Account {
   id              Int @id @default(autoincrement())
-  isEmailPublic   Boolean
-  isNamePublic    Boolean
+  isEmailPublic   Boolean @default(false)
+  isNamePublic    Boolean @default(false)
   posts           Post[]
   comments        Comment[]
   user            User @relation(fields: [userId],references: [id])
