@@ -1,7 +1,7 @@
 import { PrismaClient } from ".prisma/client"
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 import { Request, Response } from "express";
-import { findOne } from "../services/user.service";
+import { findByEmail } from "../services/user.service";
 import { createToken, validatePassword } from "../services/auth.service";
 
 const prisma = new PrismaClient();
@@ -26,7 +26,7 @@ const signup = async (req: Request, res: Response) => {
 
 const login = async (req: Request, res: Response) => {
   const data = req.body;
-  const user = await findOne(data.email);
+  const user = await findByEmail(data.email);
 
   if (!user) {
     return res.status(400).send({ message: 'email not registered' });

@@ -32,9 +32,16 @@ const generateToken = (data: jwtData, expires: string = expiresIn) => {
   return token;
 }
 
-const verifyToken = async (token: string, req: Request, res: Response): Promise<jwtPayload> => {
-  const verifiedToken = (await jwt.verify(token, secret)) as jwtPayload
+const verifyToken = async (token: string): Promise<jwtPayload> => {
+  const verifiedToken = jwt.verify(token, secret) as jwtPayload
   return verifiedToken
 }
+// const verifyToken = (token: string): Promise<jwtPayload> =>
+//   new Promise((resolve, reject) => {
+//     jwt.verify(token, secret, (err, payload) => {
+//       if (err) return reject(err)
+//       resolve(payload as jwtPayload);
+//     })
+//   })
 
 export { validatePassword, createToken, generateToken, verifyToken }
