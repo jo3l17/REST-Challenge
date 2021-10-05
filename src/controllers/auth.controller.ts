@@ -10,17 +10,14 @@ const prisma = new PrismaClient();
 
 const signup = async (req: Request, res: Response) => {
   const data = req.body
-
   try {
     const user = await prisma.user.create({ data })
     const token = await createToken({ id: user.id, role: user.role, type: 'verification' });
-    return res.status(200).json({ token: token.token });
+    return res.status(200).send(token);
   } catch (e) {
     if (e instanceof PrismaClientKnownRequestError && e.code === 'P2002') {
       return res.status(400).send({ message: 'email already in use' })
     }
-
-    console.log(e);
 
     return res.status(500).send({ message: 'there was an error' })
   }
@@ -63,6 +60,18 @@ const login = async (req: Request, res: Response) => {
   return res.status(200).send(token);
 }
 
+const logout = async (req: Request, res: Response) => {
+  try {
+    const tokenToDelete = await findHeaderToken(req);
+    await deleteToken(tokenToDelete!.id)
+
+    return res.status(200).send({ message: 'session ended' })
+  } catch (e) {
+
+    return res.status(500).send({ message: 'session couldn\' finish, try again' })
+  }
+}
+
 const passwordRecover = async (req: Request, res: Response) => {
   const { email } = req.body;
   const user = await findByEmail(email);
@@ -91,18 +100,6 @@ const passwordChange = async (req: Request, res: Response) => {
   return res.status(200).send({ message: 'password updated' });
 }
 
-const logout = async (req: Request, res: Response) => {
-  try {
-    const tokenToDelete = await findHeaderToken(req);
-    await deleteToken(tokenToDelete!.id)
-
-    return res.status(200).send({ message: 'session ended' })
-  } catch (e) {
-
-    return res.status(500).send({ message: 'session couldn\' finish, try again' })
-  }
-}
-
 const refreshToken = async (req: Request, res: Response) => {
   try {
     const tokenToRefresh = await findHeaderToken(req);
@@ -110,7 +107,7 @@ const refreshToken = async (req: Request, res: Response) => {
 
     return res.status(200).send(newToken)
   } catch (e) {
-    return res.status(500).send({ message: 'token couldn\' be updated, try again' })
+    return res.status(500).send({ message: 'token couldn\'t be updated, try again' })
   }
 }
 

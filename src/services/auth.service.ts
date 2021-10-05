@@ -32,7 +32,7 @@ const generateToken = (data: jwtData, expires: string = expiresIn) => {
   return token;
 }
 
-const verifyToken = async (token: string): Promise<jwtPayload> => {
+const verifyToken = (token: string): jwtPayload => {
   const verifiedToken = jwt.verify(token, secret) as jwtPayload
   return verifiedToken
 }
