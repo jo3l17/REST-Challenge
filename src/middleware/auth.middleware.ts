@@ -40,6 +40,10 @@ const protect = async (req: Request, res: Response, next: NextFunction) => {
     return res.status(500).send({ message: 'token error' })
   }
 
+  if (payload.type !== 'session') {
+    return res.status(500).send({ message: 'not a session token, login again' })
+  }
+
   const user = await findById(payload.id)
   if (!user) {
     return res.status(401).send({ message: 'no user' })

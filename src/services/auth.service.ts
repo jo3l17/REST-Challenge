@@ -20,7 +20,7 @@ const createToken = async (data: jwtData) => {
     data: {
       token,
       userId: data.id,
-      expirationDate: date
+      expirationDate: date,
     }
   })
   return prismaToken
@@ -35,12 +35,5 @@ const verifyToken = async (token: string): Promise<jwtPayload> => {
   const verifiedToken = jwt.verify(token, secret) as jwtPayload
   return verifiedToken
 }
-// const verifyToken = (token: string): Promise<jwtPayload> =>
-//   new Promise((resolve, reject) => {
-//     jwt.verify(token, secret, (err, payload) => {
-//       if (err) return reject(err)
-//       resolve(payload as jwtPayload);
-//     })
-//   })
 
 export { validatePassword, createToken, generateToken, verifyToken }
