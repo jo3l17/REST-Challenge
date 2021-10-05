@@ -2,7 +2,7 @@ import { PrismaClient } from ".prisma/client"
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 import { Request, Response } from "express";
 import { findByEmail, updatePassword } from "../services/user.service";
-import { createToken, generateToken, validatePassword, verifyToken } from "../services/auth.service";
+import { createToken, deleteToken, findHeaderToken, generateToken, updateToken, validatePassword, verifyToken } from "../services/auth.service";
 import bcrypt from 'bcrypt'
 import { jwtData } from "../utils/jwt.util";
 
@@ -91,8 +91,27 @@ const passwordChange = async (req: Request, res: Response) => {
   return res.status(200).send({ message: 'password updated' });
 }
 
-const logout = (req: Request, res: Response) => {
+const logout = async (req: Request, res: Response) => {
+  try {
+    const tokenToDelete = await findHeaderToken(req);
+    await deleteToken(tokenToDelete!.id)
 
+    return res.status(200).send({ message: 'session ended' })
+  } catch (e) {
+
+    return res.status(500).send({ message: 'session couldn\' finish, try again' })
+  }
 }
 
-export { signup, login, passwordRecover, passwordChange }
+const refreshToken = async (req: Request, res: Response) => {
+  try {
+    const tokenToRefresh = await findHeaderToken(req);
+    const newToken = await updateToken(tokenToRefresh!.id, tokenToRefresh!.token)
+
+    return res.status(200).send(newToken)
+  } catch (e) {
+    return res.status(500).send({ message: 'token couldn\' be updated, try again' })
+  }
+}
+
+export { signup, login, passwordRecover, passwordChange, logout, refreshToken }
