@@ -19,8 +19,8 @@ app.use(morgan('dev'));
 app.use(urlencoded({ extended: false }));
 app.use(json());
 
-app.use(postRouter);
-app.use(commentRouter);
+//app.use(postRouter);
+//app.use(commentRouter);
 app.use(asyncHandler(authRouter))
   .use('/accounts', asyncHandler(accountRouter))
   .use('/users', asyncHandler(userRoute))

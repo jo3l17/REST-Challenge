@@ -1,8 +1,8 @@
 import { Router } from "express";
 import { getAccount } from "../controllers/account.controller";
 import { protect } from "../middleware/auth.middleware";
+import { commentPostRouter } from "./comment.route";
 import { postRouter, postAccountRouter } from "./post.route";
-import {  protect } from "../middleware/auth.middleware";
 
 const accountRouter: Router = Router();
 
@@ -11,5 +11,6 @@ accountRouter
   .get('/:id', getAccount)
   .use('/me/posts', protect, postAccountRouter)
   .use('/:accountId/posts', postRouter)
+  .use('/me/comments', protect, commentPostRouter)
 
 export { accountRouter };
