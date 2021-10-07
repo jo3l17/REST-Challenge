@@ -24,7 +24,8 @@ app.use(commentRouter);
 app.use(asyncHandler(authRouter))
   .use('/accounts', asyncHandler(accountRouter))
   .use('/users', asyncHandler(userRoute))
-app.use(errorHandler);
+  .use('/posts', postRouter)
+  .use(errorHandler);
 
 const server = app.listen(PORT, async () => {
   try {
@@ -36,4 +37,5 @@ const server = app.listen(PORT, async () => {
     await prisma.$disconnect()
   }
   console.log(`App running at http://${HOST}:${PORT}`);
+
 })

@@ -17,4 +17,5 @@ type jwtPayload = {
   exp: number
 }
 
+
 export { secret, expiresIn, jwtData, jwtPayload }
