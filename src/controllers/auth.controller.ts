@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import userService from "../services/user.service";
-import { deleteToken, findHeaderToken, generateToken, hashPassword, updateToken, validateLoginData, validateSignupData, verifyToken } from "../services/auth.service";
+import { deleteToken, findHeaderToken, hashPassword, recoverPasswordService, updateToken, validateLoginData, validateSignupData, verifyToken } from "../services/auth.service";
 
 const signup = async (req: Request, res: Response) => {
   const data = req.body
@@ -28,7 +28,7 @@ const logout = async (req: Request, res: Response) => {
 const passwordRecover = async (req: Request, res: Response) => {
   const { email } = req.body;
   const user = await userService.findByEmail(email);
-  const token = generateToken({ id: user.id, role: user.role, type: 'password' });
+  const token = await recoverPasswordService(user);
 
   return res.status(200).send({ token });
 }
@@ -36,7 +36,7 @@ const passwordRecover = async (req: Request, res: Response) => {
 const passwordChange = async (req: Request, res: Response) => {
   const { token } = req.params
   const { password } = req.body
-  const payload = await verifyToken(token)
+  const payload = await verifyToken(token, 'password')
   const HASH = await hashPassword(password);
 
   await userService.updatePassword(payload.id, HASH);

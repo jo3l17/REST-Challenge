@@ -1,6 +1,6 @@
 import { PrismaClient } from ".prisma/client";
 import createHttpError from "http-errors";
-import { accountData } from "../models/account.model";
+import { accountData, patchAccountModel } from "../models/account.model";
 
 const prisma = new PrismaClient();
 
@@ -49,6 +49,22 @@ class accountService {
     }
 
     return account;
+  }
+
+  static updateAccount = async (id: number, data: patchAccountModel) => {
+    const updatedAccount = await prisma.account.update({
+      ...accountData,
+      where: {
+        id
+      },
+      data
+    })
+
+    if (!updatedAccount) {
+      throw createHttpError(404, 'no account found');
+    }
+
+    return updatedAccount;
   }
 }
 

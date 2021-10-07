@@ -11,10 +11,27 @@ const getUser = async (req: Request, res: Response) => {
 
 const verifyUser = async (req: Request, res: Response) => {
   const token = req.params.token
-  const payload = await verifyToken(token);
+  const payload = await verifyToken(token, 'verification');
   await userService.updateVerification(payload.id, payload.role);
 
-  return res.status(400).send({ message: 'user verified' });
+  return res.status(200).send({ message: 'user verified' });
 }
 
-export { getUser, verifyUser }
+const emailChange = async (req: Request, res: Response) => {
+  const id = req.body.user.id;
+  const { email } = req.body;
+  const user = await userService.createTemporalEmail(id, email);
+  console.log(user)
+
+  return res.status(200).send({ message: 'Please verify your new email' });
+}
+
+const verifyNewEmail = async (req: Request, res: Response) => {
+  const token = req.params.token
+  const payload = await verifyToken(token, 'email');
+  await userService.updateEmail(payload.id);
+
+  return res.status(200).send({ message: 'email changed' });
+}
+
+export { getUser, verifyUser, emailChange, verifyNewEmail }

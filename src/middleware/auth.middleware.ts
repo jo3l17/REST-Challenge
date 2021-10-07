@@ -30,7 +30,7 @@ const protect = async (req: Request, res: Response, next: NextFunction) => {
   const token = bearer.split('Bearer ')[1].trim()
   let payload;
   try {
-    payload = await verifyToken(token);
+    payload = await verifyToken(token, 'session');
   } catch (e) {
     console.log(e);
     if (e instanceof TokenExpiredError) {

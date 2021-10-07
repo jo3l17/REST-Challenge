@@ -27,7 +27,7 @@ describe('Authentication controller: ', () => {
           return this
         },
         send(result: ResponseObject) {
-          const payload = verifyToken(result.token);
+          const payload = verifyToken(result.token, 'verification');
           expect(payload.type).toBe('verification')
         }
       }

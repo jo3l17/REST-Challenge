@@ -8,6 +8,8 @@ import userService from './user.service';
 import createHttpError from 'http-errors'
 import accountService from './account.service';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
+import { createEmail, sgMail } from '../utils/sendgrid.util';
+import { userModel } from '../models/user.model';
 const prisma = new PrismaClient();
 
 const validatePassword = async (dataPassword: string, userPassword: string) => {
@@ -15,7 +17,7 @@ const validatePassword = async (dataPassword: string, userPassword: string) => {
 }
 
 const createToken = async (data: jwtData) => {
-  if (data.role === 'user') {
+  if (data.role === 'user' && data.type === 'session') {
     const account = await accountService.findByUserId(data.id)
     data.accountId = account!.id;
   }
@@ -38,9 +40,12 @@ const generateToken = (data: jwtData, expires: string = expiresIn) => {
   return token;
 }
 
-const verifyToken = (token: string): jwtPayload => {
+const verifyToken = (token: string, type: string = 'session'): jwtPayload => {
   try {
     const verifiedToken = jwt.verify(token, secret) as jwtPayload
+    if (verifiedToken.type !== type) {
+      throw createHttpError(400, 'invalid token')
+    }
     return verifiedToken
   } catch (e) {
     console.log(e);
@@ -74,6 +79,14 @@ const validateSignupData = async (data: User, password: string) => {
     const HASH = await hashPassword(password);
     const user = await userService.create({ ...data, HASH });
     const token = await createToken({ id: user.id, role: user.role, type: 'verification' });
+    const msg = createEmail(
+      data.email,
+      `token signup`,
+      `Hello ${data.name} use patch to this url to verify your account`,
+      `http://localhost:3000/users/${token.token}/verify`,
+      token.token
+    )
+    await sgMail.send(msg)
 
     return token
   } catch (e) {
@@ -110,6 +123,20 @@ const validateLoginData = async (email: string, password: string) => {
   const data: jwtData = { id: user.id, role: user.role, type: 'session' }
 
   const token = await createToken(data)
+
+  return token
+}
+
+const recoverPasswordService = async (user: userModel) => {
+  const token = generateToken({ id: user.id, role: user.role, type: 'password' });
+  const msg = createEmail(
+    user.email,
+    `Password Recover`,
+    `Hello ${user.name} use patch to this url to change you password with your new password`,
+    `http://localhost:3000/users/passwords/${token}`,
+    token
+  )
+  await sgMail.send(msg)
 
   return token
 }
@@ -179,5 +206,6 @@ export {
   updateToken,
   validateSignupData,
   validateLoginData,
-  hashPassword
+  hashPassword,
+  recoverPasswordService
 }

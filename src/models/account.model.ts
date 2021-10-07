@@ -15,6 +15,15 @@ const accountData = Prisma.validator<Prisma.AccountArgs>()({
   },
 })
 
-type accountModel = Prisma.AccountGetPayload<typeof accountData>
+const patchAccountData = Prisma.validator<Prisma.AccountArgs>()({
+  select: {
+    isEmailPublic: true,
+    isNamePublic: true,
+  },
+})
 
-export { accountModel, accountData }
+type resAccountModel = Prisma.AccountGetPayload<typeof accountData>
+
+type patchAccountModel = Prisma.AccountGetPayload<typeof patchAccountData>
+
+export { resAccountModel, accountData, patchAccountModel }
