@@ -6,6 +6,9 @@ import { authRouter } from "./routes/auth.route";
 import { postRouter } from "./routes/post.route";
 import { commentRouter } from "./routes/comment.route";
 import { accountRouter } from "./routes/account.route";
+import { userRoute } from "./routes/user.route";
+import asyncHandler from 'express-async-handler';
+import { errorHandler } from "./utils/error.util";
 
 const prisma = new PrismaClient();
 const app = express();
@@ -13,8 +16,16 @@ const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || 'localhost'
 
 app.use(morgan('dev'));
+app.use(urlencoded({ extended: false }));
 app.use(json());
-app.use(urlencoded({ extended: true }));
+
+app.use(postRouter);
+app.use(commentRouter);
+app.use(asyncHandler(authRouter))
+  .use('/accounts', asyncHandler(accountRouter))
+  .use('/users', asyncHandler(userRoute))
+  .use('/posts', postRouter)
+  .use(errorHandler);
 
 const server = app.listen(PORT, async () => {
   try {
@@ -26,8 +37,5 @@ const server = app.listen(PORT, async () => {
     await prisma.$disconnect()
   }
   console.log(`App running at http://${HOST}:${PORT}`);
-})
 
-app.use(authRouter)
-  .use('/accounts', accountRouter)
-  .use('/posts', postRouter)
+})

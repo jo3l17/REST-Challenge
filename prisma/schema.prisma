@@ -31,7 +31,7 @@ model Account {
   posts           Post[]
   comments        Comment[]
   user            User @relation(fields: [userId],references: [id])
-  userId          Int
+  userId          Int @unique
   reportComments  ReportComment[]
   reportPosts     ReportPost[]
   postLikes       PostLike[]

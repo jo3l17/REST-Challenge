@@ -22,6 +22,7 @@
   "homepage": "https://github.com/jo3l17/REST-Challenge#readme",
   "devDependencies": {
     "@types/express": "^4.17.13",
+    "@types/http-errors": "^1.8.1",
     "@types/jest": "^27.0.2",
     "@types/jsonwebtoken": "^8.5.5",
     "@types/morgan": "^1.9.3",
@@ -47,6 +48,8 @@
     "@types/bcrypt": "^5.0.0",
     "body-parser": "^1.19.0",
     "express": "^4.17.1",
+    "express-async-handler": "^1.1.4",
+    "http-errors": "^1.8.0",
     "jsonwebtoken": "^8.5.1",
     "morgan": "^1.10.0"
   }
