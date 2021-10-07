@@ -48,7 +48,7 @@ const protect = async (req: Request, res: Response, next: NextFunction) => {
   if (!user) {
     return res.status(401).send({ message: 'no user' })
   }
-  req.body.user = user;
+  req.body.user = {...user, accountId: payload.accountId};
   next();
 }
 

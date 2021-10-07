@@ -28,7 +28,6 @@ const server = app.listen(PORT, async () => {
   console.log(`App running at http://${HOST}:${PORT}`);
 })
 
-app.use(postRouter);
-app.use(commentRouter);
 app.use(authRouter)
-  .use('/accounts', accountRouter);
+  .use('/accounts', accountRouter)
+  .use('/posts', postRouter)
