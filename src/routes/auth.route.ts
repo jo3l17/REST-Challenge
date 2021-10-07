@@ -1,14 +1,13 @@
 import { Router } from "express";
 import { login, logout, refreshToken, signup } from "../controllers/auth.controller";
-import { hashPassword, loginCheck } from "../middleware/auth.middleware";
+import asyncHandler from 'express-async-handler';
 
 const authRouter: Router = Router();
 
 authRouter
-  .post('/signup', hashPassword, signup)
-  .post('/login', loginCheck, login)
-  .post('/logout', logout)
-  .patch('/refresh-token', refreshToken)
-
+  .post('/signup', asyncHandler(signup))
+  .post('/login', asyncHandler(login))
+  .post('/logout', asyncHandler(logout))
+  .patch('/refresh-token', asyncHandler(refreshToken))
 
 export { authRouter }
