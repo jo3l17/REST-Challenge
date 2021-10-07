@@ -1,14 +1,22 @@
 import { Router } from "express";
-import { createComment, deleteComment, getDislikesOfComment, getLikesOfComment, giveDislikeToComment, giveLikeToComment, updateComment } from "../controllers/comment.controller";
+import { createComment, deleteComment, getAllComments, getActionOfComment, giveActionToComment, updateComment } from "../controllers/comment.controller";
 
-const commentRouter: Router = Router();
+const commentRouter: Router = Router({mergeParams: true});
+const commentAccountRouter: Router = Router({mergeParams: true});
+const commentPostRouter: Router = Router({mergeParams: true});
+
 commentRouter
-  .get("/commentId/likes",getLikesOfComment)
-  .get("/commentId/dislikes", getDislikesOfComment)
-  .post("/", createComment)
-  .patch("/commentId", updateComment)
-  .patch("/commentId/like", giveLikeToComment)
-  .patch("/commentId/dislike", giveDislikeToComment)
-  .delete("/commenttId", deleteComment)
+  .get("/:commentId/:action", getActionOfComment)
+  .patch("/:commentId/:action", giveActionToComment)
+  
 
-export { commentRouter };
+commentAccountRouter
+  .get("/", getAllComments)
+
+commentPostRouter
+  .post("/", createComment)
+  .patch("/:commentId", updateComment)
+  .patch("/:commentId/:action", giveActionToComment)
+  .delete("/:commenttId", deleteComment)
+
+export { commentRouter, commentAccountRouter, commentPostRouter };
