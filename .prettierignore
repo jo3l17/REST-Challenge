@@ -5,3 +5,4 @@ coverage
 /node_modules
 .DS_Store
 .eslintrc.js
+*.spec.ts
