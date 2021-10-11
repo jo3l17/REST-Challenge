@@ -1,22 +1,21 @@
-const secret = 'ravn_nerdery';
-const expiresIn = '1h';
+const secret = "ravn_nerdery"
+const expiresIn = '1h'
 
 type jwtData = {
-  id: number;
-  role: 'user' | 'moderator';
-  type: sessionType;
-  accountId?: number;
-};
+  id: number
+  role: 'user' | 'moderator'
+  type: 'session' | 'password' | 'email' | 'verification',
+  accountId?: number
+}
 
 type jwtPayload = {
-  id: number;
-  role: 'user' | 'moderator';
-  type: sessionType;
-  accountId?: number;
-  iat: number;
-  exp: number;
-};
+  id: number
+  role: 'user' | 'moderator'
+  type: 'session' | 'password' | 'email' | 'verification'
+  accountId?: number
+  iat: number
+  exp: number
+}
 
-type sessionType = 'session' | 'password' | 'email' | 'verification';
 
-export { secret, expiresIn, jwtData, jwtPayload, sessionType };
+export { secret, expiresIn, jwtData, jwtPayload }

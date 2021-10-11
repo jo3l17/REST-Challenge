@@ -15,7 +15,7 @@ model User {
   name            String @db.VarChar(50)
   email           String @unique
   temporalEmail   String?
-  password        String
+  HASH            String
   verifiedAt      DateTime?
   createdAt       DateTime @default(now())
   updatedAt       DateTime? @updatedAt
