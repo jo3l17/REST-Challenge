@@ -18,7 +18,7 @@ class CommentService {
         },
         post: {
           connect: {
-            id: accountId
+            id: postId
           }
         }
       }
@@ -78,15 +78,18 @@ class CommentService {
   }
 
   static recountAction = async (commentId: number, actionType: string) => {
+    console.log([actionType])
     const action = await prisma.comment.findUnique({
       where: {
         id: commentId,
       }, 
       select: {
-        [actionType]: true
+        [actionType]: true,
+        published: true
       }
     });
       
+    console.log(action)
     if (!action) {
       throw createHttpError(404, 'comment not found')
     }

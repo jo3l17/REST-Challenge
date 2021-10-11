@@ -50,7 +50,7 @@ class PostService {
     return posts
   }
 
-  static getPublicPosts = async (accountId?: number): Promise<PostModel[]> => {
+  static getPublicPosts = async (accountId: number): Promise<PostModel[]> => {
     const posts = await prisma.post.findMany({
       where: {
         AND: [
@@ -58,7 +58,7 @@ class PostService {
             published: {
               equals: true
             },
-            accountId: accountId != null ? accountId : undefined
+            accountId: isNaN(accountId) ? undefined : accountId
           }
         ]
       }
@@ -71,7 +71,30 @@ class PostService {
     return posts
   }
 
-  static getPostDetermined = async (postId: number, accountId: number): Promise<PostModel> => {
+  static getPostDetermined = async (postId: number): Promise<PostModel> => {
+    const post = await prisma.post.findFirst({
+      where: {
+        AND: [
+          {
+            id: {
+              equals: postId
+            },
+            published: {
+              equals: true
+            }
+          }
+        ]
+      }
+    });
+
+    if (!post) {
+      throw createHttpError(404, 'post not found')
+    }
+
+    return post
+  }
+
+  static getOwnPost = async (postId: number, accountId: number): Promise<PostModel> => {
     const post = await prisma.post.findFirst({
       where: {
         AND: [
@@ -82,9 +105,6 @@ class PostService {
             accountId: {
               equals: accountId
             },
-            published: {
-              equals: true
-            }
           }
         ]
       }
