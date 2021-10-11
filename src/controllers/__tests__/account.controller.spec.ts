@@ -4,11 +4,6 @@ import { getUser } from "../user.controller";
 
 const prisma = new PrismaClient();
 
-type ResponseObject = {
-  message?: string
-  token?: string
-}
-
 describe('User controller: ', () => {
   describe('getUser ', () => {
     it('should return a user', async () => {
