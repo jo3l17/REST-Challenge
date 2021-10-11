@@ -1,18 +1,26 @@
-import { Router } from "express";
-import { passwordChange, passwordRecover } from "../controllers/auth.controller";
-import { emailChange, getUser, verifyNewEmail, verifyUser } from "../controllers/user.controller";
-import asyncHandler from "express-async-handler";
-import { protect } from "../middleware/auth.middleware";
+import { Router } from 'express';
+import {
+  passwordChange,
+  passwordRecover,
+} from '../controllers/auth.controller';
+import {
+  emailChange,
+  getUser,
+  verifyNewEmail,
+  verifyUser,
+} from '../controllers/user.controller';
+import asyncHandler from 'express-async-handler';
+import { protect } from '../middleware/auth.middleware';
 
-const userRoute = Router()
+const userRoute = Router();
 
 userRoute
-  .patch('/:token/verify', asyncHandler(verifyUser))
-  .post('/passwords/recovery', asyncHandler(passwordRecover))
-  .patch('/passwords/:token', asyncHandler(passwordChange))
-  .patch('/email', asyncHandler(protect), asyncHandler(emailChange))
-  .patch('/email/:token', asyncHandler(verifyNewEmail))
   .get('/me', protect, asyncHandler(getUser))
   .get('/:id', asyncHandler(getUser))
+  .post('/passwords/recovery', asyncHandler(passwordRecover))
+  .patch('/:token/verify', asyncHandler(verifyUser))
+  .patch('/passwords/:token', asyncHandler(passwordChange))
+  .patch('/email', protect, asyncHandler(emailChange))
+  .patch('/email/:token', asyncHandler(verifyNewEmail));
 
-export { userRoute }
+export { userRoute };
