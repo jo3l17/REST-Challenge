@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "jest",
-    "format": "prettier --write \"src/**/*.ts\" ",
+    "format": "prettier --write \"**/*.+(js|json|ts)\"",
     "lint": "eslint .",
     "migrate": "prisma migrate dev --preview-feature",
     "dev": "nodemon ./src/server.ts"
@@ -31,17 +31,13 @@
     "@typescript-eslint/parser": "^4.32.0",
     "bcrypt": "^5.0.1",
     "eslint": "^7.32.0",
-    "eslint-config-airbnb": "^18.2.1",
     "eslint-config-airbnb-typescript": "^14.0.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-import": "^2.24.2",
-    "eslint-plugin-jest": "^24.5.2",
-    "eslint-plugin-jsx-a11y": "^6.4.1",
     "eslint-plugin-prettier": "^4.0.0",
-    "eslint-plugin-react": "^7.26.1",
     "jest": "^27.2.4",
     "nodemon": "^2.0.13",
-    "prettier": "2.4.1",
+    "prettier": "^2.4.1",
     "prisma": "^3.2.0",
     "ts-jest": "^27.0.5",
     "ts-node": "^10.2.1",
@@ -52,7 +48,6 @@
     "@sendgrid/mail": "^7.4.7",
     "@types/bcrypt": "^5.0.0",
     "body-parser": "^1.19.0",
-    "class-transformer": "^0.4.0",
     "class-validator": "^0.13.1",
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
@@ -60,13 +55,5 @@
     "http-errors": "^1.8.0",
     "jsonwebtoken": "^8.5.1",
     "morgan": "^1.10.0"
-  },
-  "prettier": {
-    "printWidth": 80,
-    "tabWidth": 2,
-    "useTabs": false,
-    "semi": true,
-    "singleQuote": true,
-    "trailingComma": "all"
   }
 }

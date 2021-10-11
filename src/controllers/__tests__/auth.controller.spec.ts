@@ -1,7 +1,7 @@
-import { signup } from "../auth.controller";
+import { signup, login, logout, passwordRecover, passwordChange, refreshToken } from "../auth.controller";
 import { PrismaClient } from ".prisma/client";
 import { Request, Response } from "express";
-import authService from "../../services/auth.service";
+import { verifyToken } from "../../services/auth.service";
 const prisma = new PrismaClient();
 
 type ResponseObject = {
@@ -26,12 +26,12 @@ describe('Authentication controller: ', () => {
           expect(status).toBe(200)
           return this
         },
-        async send(result: ResponseObject) {
-          const payload = await authService.verifyToken(result.token, 'verification');
+        send(result: ResponseObject) {
+          const payload = verifyToken(result.token, 'verification');
           expect(payload.type).toBe('verification')
         }
       }
-      await signup(req as Request, res as unknown as Response)
+      await signup(req as Request, res as Response)
     })
 
     it('should return email already in use', async () => {
