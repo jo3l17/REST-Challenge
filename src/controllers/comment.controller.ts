@@ -1,44 +1,71 @@
-import { PrismaClient } from '.prisma/client';
+import { plainToClass } from 'class-transformer';
 import { Request, Response } from 'express';
+import { CreateCommentDto } from '../models/comments/request/create.comment';
+import { UpdateCommentDto } from '../models/comments/request/update.comment';
+import { CommentDto } from '../models/comments/response/comment.dto';
 import { CommentService } from '../services/comment.service';
 
-const prisma = new PrismaClient();
+const createComment = async (req: Request, res: Response): Promise<void> => {
+  const dto = plainToClass(CreateCommentDto, req.body);
+  dto.isValid();
 
-const createComment = async (req: Request, res: Response) => {
+  console.log(req.user.accountId);
   const comment = await CommentService.create(
-    req.body.user.accountId,
-    parseInt(req.body.user.accountId),
-    req.body,
+    req.user.accountId,
+    parseInt(req.params.postId),
+    dto,
   );
 
-  res.status(201).json(comment);
+  res.status(201).json(plainToClass(CommentDto, comment));
 };
 
-const getAllComments = async (req: Request, res: Response) => {
-  const comments = await CommentService.read(req.body.user.accountId);
+const getOwnComments = async (req: Request, res: Response): Promise<void> => {
+  const comments = await CommentService.read(req.user.accountId);
 
-  res.status(200).json(comments);
+  res.status(200).json(plainToClass(CommentDto, comments));
 };
 
-const updateComment = async (req: Request, res: Response) => {
+const getMyPost = async (req: Request, res: Response): Promise<void> => {
+  const comment = await CommentService.getMyComment(
+    parseInt(req.params.commentId),
+  );
+
+  res.status(200).json(plainToClass(CommentDto, comment));
+};
+
+const getListComments = async (req: Request, res: Response): Promise<void> => {
+  const comments = await CommentService.getPublicComments(
+    parseInt(req.params.postId),
+  );
+
+  res.status(200).json(plainToClass(CommentDto, comments));
+};
+
+const updateComment = async (req: Request, res: Response): Promise<void> => {
+  const dto = plainToClass(UpdateCommentDto, req.body);
+  dto.isValid;
+
   const comment = await CommentService.update(
     parseInt(req.params.commentId),
     req.body,
   );
 
-  res.status(200).json(comment);
+  res.status(200).json(plainToClass(CommentDto, comment));
 };
 
-const deleteComment = async (req: Request, res: Response) => {
+const deleteComment = async (req: Request, res: Response): Promise<void> => {
   const commentDeleted = await CommentService.delete(
     parseInt(req.params.commentId),
   );
 
-  res.status(200).json(commentDeleted);
+  res.status(200).json(plainToClass(CommentDto, commentDeleted));
 };
 
-const getActionOfComment = async (req: Request, res: Response) => {
-  const action = CommentService.recountAction(
+const getActionOfComment = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  const action = await CommentService.recountAction(
     parseInt(req.params.commentId),
     req.params.action,
   );
@@ -46,21 +73,28 @@ const getActionOfComment = async (req: Request, res: Response) => {
   res.status(200).json(action);
 };
 
-const giveActionToComment = async (req: Request, res: Response) => {
-  const commentId = parseInt(req.params.postId);
-  const action = req.params.action;
-  const accountId = parseInt(req.params.accountId) || req.body.user.accountId;
+const giveActionToComment = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  const accountId = parseInt(req.params.accountId) || req.user.accountId;
 
-  const comment = await CommentService.addAction(accountId, commentId, action);
+  const comment = await CommentService.addAction(
+    accountId,
+    parseInt(req.params.postId),
+    req.params.action,
+  );
 
-  res.status(200).json(comment);
+  res.status(200).json(plainToClass(CommentDto, comment));
 };
 
 export {
   createComment,
   updateComment,
   deleteComment,
-  getAllComments,
+  getOwnComments,
+  getMyPost,
+  getListComments,
   getActionOfComment,
   giveActionToComment,
 };

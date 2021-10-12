@@ -1,6 +1,8 @@
-import { Actions, PrismaClient } from '.prisma/client';
+import { Actions, Comment, Prisma, PrismaClient } from '.prisma/client';
+import { plainToClass } from 'class-transformer';
 import createHttpError from 'http-errors';
-import { createCommentModel } from '../models/comments/request/create-comment';
+import { CreateCommentDto } from '../models/comments/request/create.comment';
+import { ActionCommentDto } from '../models/comments/response/actions.comment';
 
 const prisma = new PrismaClient();
 
@@ -8,9 +10,9 @@ class CommentService {
   static create = async (
     accountId: number,
     postId: number,
-    body: createCommentModel,
-  ): Promise<createCommentModel> => {
-    const commentCreated = await prisma.comment.create({
+    body: CreateCommentDto,
+  ): Promise<Comment> => {
+    return await prisma.comment.create({
       data: {
         content: body.content,
         published: body.published,
@@ -21,69 +23,99 @@ class CommentService {
         },
         post: {
           connect: {
-            id: accountId,
+            id: postId,
           },
         },
       },
     });
-
-    if (!commentCreated) {
-      throw createHttpError(404, 'comment not found');
-    }
-
-    return commentCreated;
   };
 
-  static read = async (accountId: number) => {
-    const comments = await prisma.comment.findMany({
+  static read = async (accountId: number): Promise<Comment[]> => {
+    return await prisma.comment.findMany({
       where: {
         accountId: accountId,
       },
     });
-
-    if (!comments) {
-      throw createHttpError(404, 'comment not found');
-    }
-
-    return comments;
   };
 
   static update = async (
     commentId: number,
-    body: createCommentModel,
-  ): Promise<createCommentModel> => {
-    const commentUpdated = await prisma.comment.update({
+    body: CreateCommentDto,
+  ): Promise<Comment> => {
+    try {
+      const commentUpdated = await prisma.comment.update({
+        where: {
+          id: commentId,
+        },
+        data: {
+          content: body.content,
+          published: body.published,
+        },
+      });
+
+      return commentUpdated;
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if ((error.code = 'P2025')) {
+          throw createHttpError(404, 'Comment to update not found');
+        }
+      }
+
+      throw error;
+    }
+  };
+
+  static getMyComment = async (commentId: number): Promise<Comment> => {
+    const comment = await prisma.comment.findFirst({
       where: {
-        id: commentId,
-      },
-      data: {
-        content: body.content,
-        published: body.published,
+        id: {
+          equals: commentId,
+        },
       },
     });
 
-    if (!commentUpdated) {
-      throw createHttpError(404, 'comment not found');
+    if (!comment) {
+      throw createHttpError(404, 'Comment not found');
     }
 
-    return commentUpdated;
+    return comment;
   };
 
-  static delete = async (commentId: number): Promise<createCommentModel> => {
-    const commentDeleted = await prisma.comment.delete({
+  static delete = async (commentId: number): Promise<Comment> => {
+    try {
+      const commentDeleted = await prisma.comment.delete({
+        where: {
+          id: commentId,
+        },
+      });
+
+      return commentDeleted;
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if ((error.code = 'P2025')) {
+          throw createHttpError(404, 'Post to update not found');
+        }
+      }
+
+      throw error;
+    }
+  };
+
+  static getPublicComments = async (postId: number): Promise<Comment[]> => {
+    const comments = await prisma.comment.findMany({
       where: {
-        id: commentId,
+        postId: postId,
+        published: true,
       },
     });
 
-    if (!commentDeleted) {
-      throw createHttpError(404, 'comment not found');
-    }
-
-    return commentDeleted;
+    return comments;
   };
 
-  static recountAction = async (commentId: number, actionType: string) => {
+  static recountAction = async (
+    commentId: number,
+    actionType: string,
+  ): Promise<ActionCommentDto> => {
     const action = await prisma.comment.findUnique({
       where: {
         id: commentId,
@@ -94,17 +126,24 @@ class CommentService {
     });
 
     if (!action) {
-      throw createHttpError(404, 'comment not found');
+      throw createHttpError(
+        404,
+        `Comment not found or ${[actionType]} not supported`,
+      );
     }
 
-    return action;
+    return plainToClass(ActionCommentDto, action);
   };
 
   static addAction = async (
     accountId: number,
     commentId: number,
     action: string,
-  ) => {
+  ): Promise<Comment> => {
+    if (action !== 'likes' && action !== 'dislikes') {
+      throw createHttpError(422, `${action} not supported`);
+    }
+
     const actionByAccount = await prisma.commentLike.findFirst({
       select: {
         id: true,
@@ -151,7 +190,7 @@ class CommentService {
     accountId: number,
     commentId: number,
     action: string,
-  ) => {
+  ): Promise<Comment> => {
     const newAction = action === 'likes' ? Actions.like : Actions.dislike;
 
     const comment = await prisma.comment.update({
@@ -182,7 +221,7 @@ class CommentService {
     commentId: number,
     commentActionId: number,
     action: string,
-  ) => {
+  ): Promise<Comment> => {
     const comment = await prisma.comment.update({
       where: {
         id: commentId,
@@ -194,15 +233,13 @@ class CommentService {
       },
     });
 
-    const commentAction = await prisma.commentLike.delete({
+    await prisma.commentLike.delete({
       where: {
         id: commentActionId,
       },
     });
 
-    if (!comment || !commentAction) {
-      throw createHttpError(404, 'comment not found');
-    }
+    return comment;
   };
 }
 
