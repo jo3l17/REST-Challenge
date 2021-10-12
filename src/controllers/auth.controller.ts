@@ -1,50 +1,63 @@
-import { PrismaClient } from ".prisma/client"
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
-import { Request, Response } from "express";
-import { findOne } from "../services/user.service";
-import { createToken, validatePassword } from "../services/auth.service";
+import { Request, Response } from 'express';
+import AuthService from '../services/auth.service';
+import UserService from '../services/user.service';
 
-const prisma = new PrismaClient();
-
-const signup = async (req: Request, res: Response) => {
-  const data = req.body
-
-  try {
-    const user = await prisma.user.create({ data })
-    const token = await createToken({ id: user.id, role: user.role });
-    return res.status(200).json({ token: token.token });
-  } catch (e) {
-    if (e instanceof PrismaClientKnownRequestError && e.code === 'P2002') {
-      return res.status(400).send({ message: 'email already in use' })
-    }
-
-    console.log(e);
-
-    return res.status(500).send('there was an error')
-  }
-}
-
-const login = async (req: Request, res: Response) => {
+const signup = async (req: Request, res: Response): Promise<Response> => {
   const data = req.body;
-  const user = await findOne(data.email);
+  const password = req.body.password;
+  delete data.password;
+  const token = await AuthService.validateSignupData(data, password);
 
-  if (!user) {
-    return res.status(400).send({ message: 'email not registered' });
-  }
+  return res.status(200).json(token);
+};
 
-  if (!user.verifiedAt) {
-    return res.status(400).send({ message: 'email not verified' });
-  }
+const login = async (req: Request, res: Response): Promise<Response> => {
+  const { email, password } = req.body;
+  const token = await AuthService.validateLoginData(email, password);
 
-  const passwordExists = await validatePassword(data.password, user.HASH)
+  return res.status(200).json(token);
+};
 
-  if (!passwordExists) {
-    return res.status(400).send({ message: 'The email or password are wrong' });
-  }
+const logout = async (req: Request, res: Response): Promise<Response> => {
+  const tokenToDelete = await AuthService.findHeaderToken(req);
+  await AuthService.deleteToken(tokenToDelete.id);
 
-  const token = await createToken({ id: user.id, role: user.role })
+  return res.status(200).json({ message: 'session ended' });
+};
 
-  return res.status(200).send(token);
-}
+const passwordRecover = async (
+  req: Request,
+  res: Response,
+): Promise<Response> => {
+  const { email } = req.body;
+  const user = await UserService.findByEmail(email);
+  const token = await AuthService.recoverPasswordService(user);
 
-export { signup, login }
+  return res.status(200).json({ token });
+};
+
+const passwordChange = async (
+  req: Request,
+  res: Response,
+): Promise<Response> => {
+  const { token } = req.params;
+  const { password } = req.body;
+  const payload = await AuthService.verifyToken(token, 'password');
+  const HASH = await AuthService.hashPassword(password);
+
+  await UserService.updatePassword(payload.id, HASH);
+
+  return res.status(200).json({ message: 'password updated' });
+};
+
+const refreshToken = async (req: Request, res: Response): Promise<Response> => {
+  const tokenToRefresh = await AuthService.findHeaderToken(req);
+  const newToken = await AuthService.updateToken(
+    tokenToRefresh.id,
+    tokenToRefresh.userId,
+  );
+
+  return res.status(200).json(newToken);
+};
+
+export { signup, login, passwordRecover, passwordChange, logout, refreshToken };

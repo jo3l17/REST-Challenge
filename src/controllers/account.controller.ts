@@ -1,19 +1,25 @@
-import { Request, Response } from "express";
-import { TokenExpiredError } from "jsonwebtoken";
-import { verifyToken } from "../services/auth.service";
+import { Request, Response } from 'express';
+import AccountService from '../services/account.service';
 
-const verify = async (req: Request, res: Response) => {
-  const token = req.params.token
-  try {
-    const payload = await verifyToken(token, req, res);
-    return res.status(400).send(payload);
-  } catch (e) {
-    console.log(e);
-    if (e instanceof TokenExpiredError) {
-      return res.status(500).send({ message: 'token expired' })
-    }
-    return res.status(500).send({ message: 'token error' })
-  }
-}
+const getAccount = async (req: Request, res: Response): Promise<Response> => {
+  const id = parseInt(req.params.id) || req.user.accountId;
+  const account = await AccountService.findById(id);
 
-export { verify }
+  return res.status(200).json(account);
+};
+
+const updateAccount = async (
+  req: Request,
+  res: Response,
+): Promise<Response> => {
+  const id = parseInt(req.params.id) || req.user.accountId;
+  const { isNamePublic, isEmailPublic } = req.body;
+  const account = await AccountService.update(id, {
+    isNamePublic,
+    isEmailPublic,
+  });
+
+  return res.status(200).json(account);
+};
+
+export { getAccount, updateAccount };
