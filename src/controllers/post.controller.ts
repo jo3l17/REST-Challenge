@@ -1,72 +1,67 @@
-import { Actions, PrismaClient } from '.prisma/client';
-import { NextFunction, Request, Response } from 'express';
+import { plainToClass } from 'class-transformer';
+import { Request, Response } from 'express';
+import { CreatePostDto } from '../models/posts/request/create.post';
+import { UpdatePostDto } from '../models/posts/request/update.post';
+import { PostDto } from '../models/posts/response/post.dto';
 import { PostService } from '../services/post.service';
 
-const prisma = new PrismaClient();
+const createPost = async (req: Request, res: Response): Promise<void> => {
+  const dto = plainToClass(CreatePostDto, req.body);
+  await dto.isValid();
 
-const createPost = async (req: Request, res: Response) => {
-  const post = await PostService.create(req.body.user.accountId, req.body);
+  const post = await PostService.create(req.user.accountId, dto);
 
-  res.status(201).json(post);
+  res.status(201).json(plainToClass(PostDto, post));
 };
 
-const getPostList = async (req: Request, res: Response) => {
+const getPostList = async (req: Request, res: Response): Promise<void> => {
   const posts = await PostService.getPublicPosts(
     parseInt(req.params.accountId),
   );
 
-  res.status(200).json(posts);
+  res.status(200).json(plainToClass(PostDto, posts));
 };
 
-const getAllPosts = async (req: Request, res: Response) => {
-  const posts = await PostService.getPostsFromUser(req.body.user.accountId);
-
-  res.status(200).json(posts);
-};
-
-const getPost = async (req: Request, res: Response) => {
-  const post = await PostService.getPostDetermined(
+const getAPost = async (req: Request, res: Response): Promise<void> => {
+  const post = await PostService.getDeterminedPost(
     parseInt(req.params.postId),
     parseInt(req.params.accountId),
   );
 
-  res.status(200).json(post);
+  res.status(200).json(plainToClass(PostDto, post));
 };
 
-const updatePost = async (req: Request, res: Response) => {
-  const postUpdated = PostService.update(parseInt(req.params.postId), req.body);
+const getOwnPosts = async (req: Request, res: Response): Promise<void> => {
+  const posts = await PostService.getAllMyPosts(req.user.accountId);
 
-  res.status(200).json(postUpdated);
+  res.status(200).json(plainToClass(PostDto, posts));
 };
 
-const deletePost = async (req: Request, res: Response) => {
-  const postDeleted = PostService.delete(parseInt(req.params.postId));
+const getMyPost = async (req: Request, res: Response): Promise<void> => {
+  const post = await PostService.getMyPost(parseInt(req.params.postId));
 
-  res.status(200).json(postDeleted);
+  res.status(200).json(plainToClass(PostDto, post));
 };
 
-const getCommentsOfPost = async (req: Request, res: Response) => {
-  const postId = parseInt(req.params.postId);
-  try {
-    const comments = await prisma.post.findMany({
-      where: {
-        id: postId,
-      },
-      include: {
-        comments: {
-          where: {
-            published: true,
-          },
-        },
-      },
-    });
-    res.status(200).json(comments);
-  } catch (e) {
-    res.status(500).end('find post list error');
-  }
+const updatePost = async (req: Request, res: Response): Promise<void> => {
+  const dto = plainToClass(UpdatePostDto, req.body);
+  dto.isValid();
+
+  const postUpdated = await PostService.update(
+    parseInt(req.params.postId),
+    dto,
+  );
+
+  res.status(200).json(plainToClass(PostDto, postUpdated));
 };
 
-const getActionsOfPost = async (req: Request, res: Response) => {
+const deletePost = async (req: Request, res: Response): Promise<void> => {
+  const postDeleted = await PostService.delete(parseInt(req.params.postId));
+
+  res.status(200).json(plainToClass(PostDto, postDeleted));
+};
+
+const getActionsOfPost = async (req: Request, res: Response): Promise<void> => {
   const actions = await PostService.recountAction(
     parseInt(req.params.postId),
     req.params.action,
@@ -75,24 +70,26 @@ const getActionsOfPost = async (req: Request, res: Response) => {
   res.status(200).json(actions);
 };
 
-const giveActionToPost = async (req: Request, res: Response) => {
-  const postId = parseInt(req.params.postId);
-  const action = req.params.action;
-  const accountId = parseInt(req.params.accountId) || req.body.user.accountId;
+const giveActionToPost = async (req: Request, res: Response): Promise<void> => {
+  const accountId = parseInt(req.params.accountId) || req.user.accountId;
 
-  const post = await PostService.addAction(accountId, postId, action);
+  const post = await PostService.addAction(
+    accountId,
+    parseInt(req.params.postId),
+    req.params.action,
+  );
 
-  res.status(200).json(post);
+  res.status(200).json(plainToClass(PostDto, post));
 };
 
 export {
   getPostList,
-  getAllPosts,
-  getPost,
+  getOwnPosts,
+  getAPost,
+  getMyPost,
   createPost,
   updatePost,
   deletePost,
-  getCommentsOfPost,
   getActionsOfPost,
   giveActionToPost,
 };

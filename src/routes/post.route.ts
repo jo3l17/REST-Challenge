@@ -1,39 +1,42 @@
 import { Router } from 'express';
+import asyncHandler from 'express-async-handler';
 import {
   createPost,
   deletePost,
   getActionsOfPost,
-  getAllPosts,
-  getCommentsOfPost,
-  getPost,
+  getOwnPosts,
+  getAPost,
+  getMyPost,
   getPostList,
   giveActionToPost,
   updatePost,
 } from '../controllers/post.controller';
 import { protect } from '../middleware/auth.middleware';
-import { verifyOwner, verifyRole } from '../middleware/post.middleware';
-import { commentRouter, commentAccountRouter } from './comment.route';
+import { verifyAuthorization } from '../middleware/post.middleware';
+import { commentRouter, commentPostRouter } from './comment.route';
 
 const postRouter: Router = Router({ mergeParams: true });
 const postAccountRouter: Router = Router({ mergeParams: true });
 
 postRouter
-  .get('/', getPostList)
-  .get('/:postId', getPost)
-  .get('/:postId/comments', getCommentsOfPost)
-  .get('/:postId/:action', getActionsOfPost)
-  .patch('/:postId/:action', protect, giveActionToPost)
-  .use('/:postId/comments', commentRouter);
+  .use('/:postId/comments', commentRouter)
+  .get('/', asyncHandler(getPostList))
+  .get('/:postId', asyncHandler(getAPost))
+  .get('/:postId/:action', asyncHandler(getActionsOfPost))
+  .patch('/:postId/:action', protect, asyncHandler(giveActionToPost));
 
 postAccountRouter
-  .get('/', getAllPosts)
-  .get('/:postId', getPost)
-  .get('/:postId/comments', getCommentsOfPost)
-  .get('/:postId/:action', getActionsOfPost)
-  .post('/', createPost)
-  .patch('/:postId', updatePost)
-  .delete('/:postId', verifyRole, deletePost)
-  .patch('/:postId/:action', giveActionToPost)
-  .use('/:postId/comments', commentAccountRouter);
+  .get('/', asyncHandler(getOwnPosts))
+  .get('/:postId', asyncHandler(getMyPost))
+  .get('/:postId/:action', asyncHandler(getActionsOfPost))
+  .post('/', asyncHandler(createPost))
+  .patch('/:postId', asyncHandler(updatePost))
+  .delete(
+    '/:postId',
+    asyncHandler(verifyAuthorization),
+    asyncHandler(deletePost),
+  )
+  .patch('/:postId/:action', asyncHandler(giveActionToPost))
+  .use('/:postId/comments', commentPostRouter);
 
 export { postRouter, postAccountRouter };
