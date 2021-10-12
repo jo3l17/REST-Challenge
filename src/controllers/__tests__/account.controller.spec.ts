@@ -8,7 +8,7 @@ describe('User controller: ', () => {
   describe('getUser ', () => {
     it('should return a user', async () => {
       const date = new Date().getTime();
-      const user = await prisma.user.create({ data: { email: `t${date}@gmail.com`, HASH: '', name: '' } })
+      const user = await prisma.user.create({ data: { email: `joelvaldezangeles+${date}@gmail.com`, password: '', name: '' } })
       const req = { body: {}, params: { id: `${user.id}` } }
       // const req = { body: { email: `t${date}@gmail.com`, HASH: '12345678', name: 'Bob' } }
       const res = {
@@ -16,7 +16,7 @@ describe('User controller: ', () => {
           expect(status).toBe(200)
           return this
         },
-        send(result: User) {
+        json(result: User) {
           expect(result.email).toEqual(user.email)
         }
       }
