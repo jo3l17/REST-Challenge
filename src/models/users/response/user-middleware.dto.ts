@@ -2,7 +2,7 @@ import { Exclude, Expose, Transform } from 'class-transformer'
 import { role } from '../../../utils/jwt.util'
 
 @Exclude()
-export class UserDto {
+export class UserMiddlewareDto {
   @Expose()
   readonly id: number
 
@@ -16,12 +16,9 @@ export class UserDto {
   readonly role: role
 
   @Expose()
-  readonly password: string
-
-  @Expose()
   @Transform(({ value }) => value?.toISOString())
   readonly verifiedAt: Date | null
 
   @Expose()
-  readonly accountId?: number
+  readonly accountId?: number | null
 }

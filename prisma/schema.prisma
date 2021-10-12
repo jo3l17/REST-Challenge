@@ -30,7 +30,7 @@ model Account {
   isNamePublic    Boolean @default(false)
   posts           Post[]
   comments        Comment[]
-  user            User @relation(fields: [userId],references: [id])
+  user            User @relation(fields: [userId],references: [id], onDelete:Cascade)
   userId          Int @unique
   reportComments  ReportComment[]
   reportPosts     ReportPost[]
@@ -43,7 +43,7 @@ model Token {
   token           String
   expirationDate  DateTime
   createdAt       DateTime @default(now())
-  user            User @relation(fields: [userId],references: [id])
+  user            User @relation(fields: [userId],references: [id], onDelete:Cascade)
   userId          Int
 }
 
@@ -57,7 +57,7 @@ model Post {
   likedBy         PostLike[]
   createdAt       DateTime @default(now())
   updatedAt       DateTime? @updatedAt
-  account         Account @relation(fields: [accountId],references: [id])
+  account         Account @relation(fields: [accountId],references: [id], onDelete:Cascade)
   accountId       Int
   comments        Comment[]
   reports         ReportPost[]

@@ -5,11 +5,7 @@ const accountData = Prisma.validator<Prisma.AccountArgs>()({
     id: true,
     isEmailPublic: true,
     isNamePublic: true,
-    user: {
-      select: {
-        verifiedAt: true,
-      },
-    },
+    userId: true
   },
 });
 
