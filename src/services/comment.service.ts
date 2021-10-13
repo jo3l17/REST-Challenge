@@ -2,7 +2,7 @@ import { Actions, Comment, Prisma, PrismaClient } from '.prisma/client';
 import { plainToClass } from 'class-transformer';
 import createHttpError from 'http-errors';
 import { CreateCommentDto } from '../models/comments/request/create.comment';
-import { ActionCommentDto } from '../models/comments/response/actions.comment';
+import { FetchActionCommentDto } from '../models/comments/response/fetch.action.comment';
 
 const prisma = new PrismaClient();
 
@@ -115,13 +115,22 @@ class CommentService {
   static recountAction = async (
     commentId: number,
     actionType: string,
-  ): Promise<ActionCommentDto> => {
+  ): Promise<FetchActionCommentDto> => {
+    this.verifyAction(actionType);
     const action = await prisma.comment.findUnique({
       where: {
         id: commentId,
       },
       select: {
         [actionType]: true,
+        likedBy: {
+          select: {
+            accountId: true,
+          },
+          where: {
+            commentId: commentId,
+          },
+        },
       },
     });
 
@@ -132,7 +141,7 @@ class CommentService {
       );
     }
 
-    return plainToClass(ActionCommentDto, action);
+    return plainToClass(FetchActionCommentDto, action);
   };
 
   static addAction = async (
@@ -140,9 +149,8 @@ class CommentService {
     commentId: number,
     action: string,
   ): Promise<Comment> => {
-    if (action !== 'likes' && action !== 'dislikes') {
-      throw createHttpError(422, `${action} not supported`);
-    }
+    const newAction = action + 's';
+    this.verifyAction(newAction);
 
     const actionByAccount = await prisma.commentLike.findFirst({
       select: {
@@ -164,8 +172,6 @@ class CommentService {
     });
 
     let comment;
-    const newAction = action + 's';
-
     if (actionByAccount) {
       const prevAction = actionByAccount?.type + 's';
 
@@ -240,6 +246,12 @@ class CommentService {
     });
 
     return comment;
+  };
+
+  private static verifyAction = async (action: string) => {
+    if (action !== 'likes' && action !== 'dislikes') {
+      throw createHttpError(422, `${action} not supported`);
+    }
   };
 }
 

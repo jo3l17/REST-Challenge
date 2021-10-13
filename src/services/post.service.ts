@@ -3,7 +3,7 @@ import { plainToClass } from 'class-transformer';
 import createHttpError from 'http-errors';
 import { CreatePostDto } from '../models/posts/request/create.post';
 import { UpdatePostDto } from '../models/posts/request/update.post';
-import { ActionPostDto } from '../models/posts/response/actions.post';
+import { FetchActionPostDto } from '../models/posts/response/fetch.action.post';
 
 const prisma = new PrismaClient();
 
@@ -142,15 +142,21 @@ class PostService {
   static recountAction = async (
     postId: number,
     actionType: string,
-  ): Promise<ActionPostDto> => {
-    PostService.verifyAction(actionType);
-
+  ): Promise<FetchActionPostDto> => {
     const action = await prisma.post.findUnique({
       where: {
         id: postId,
       },
       select: {
         [actionType]: true,
+        likedBy: {
+          select: {
+            accountId: true,
+          },
+          where: {
+            postId: postId,
+          },
+        },
       },
     });
 
@@ -158,7 +164,7 @@ class PostService {
       throw createHttpError(404, 'Post not found');
     }
 
-    return plainToClass(ActionPostDto, action);
+    return plainToClass(FetchActionPostDto, action);
   };
 
   static addAction = async (
@@ -166,9 +172,6 @@ class PostService {
     postId: number,
     action: string,
   ): Promise<Post> => {
-    const newAction = action + 's';
-    PostService.verifyAction(newAction);
-
     const actionByAccount = await prisma.postLike.findFirst({
       select: {
         id: true,
@@ -189,6 +192,8 @@ class PostService {
     });
 
     let post;
+    const newAction = action + 's';
+
     if (actionByAccount) {
       const prevAction = actionByAccount?.type + 's';
       if (prevAction !== newAction) {
@@ -264,12 +269,6 @@ class PostService {
     });
 
     return post;
-  };
-
-  private static verifyAction = async (action: string) => {
-    if (action !== 'likes' && action !== 'dislikes') {
-      throw createHttpError(422, `${action} not supported`);
-    }
   };
 }
 

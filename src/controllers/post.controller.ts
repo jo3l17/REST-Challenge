@@ -2,7 +2,9 @@ import { plainToClass } from 'class-transformer';
 import { Request, Response } from 'express';
 import { CreatePostDto } from '../models/posts/request/create.post';
 import { UpdatePostDto } from '../models/posts/request/update.post';
-import { PostDto } from '../models/posts/response/post.dto';
+import { GobalPostDto } from '../models/posts/response/global.post.dto';
+import { OwnPostDto } from '../models/posts/response/own.post.dto';
+import { ReactionPostDto } from '../models/posts/response/reaction.post';
 import { PostService } from '../services/post.service';
 
 const createPost = async (req: Request, res: Response): Promise<void> => {
@@ -11,7 +13,7 @@ const createPost = async (req: Request, res: Response): Promise<void> => {
 
   const post = await PostService.create(req.user.accountId, dto);
 
-  res.status(201).json(plainToClass(PostDto, post));
+  res.status(201).json(plainToClass(OwnPostDto, post));
 };
 
 const getPostList = async (req: Request, res: Response): Promise<void> => {
@@ -19,7 +21,7 @@ const getPostList = async (req: Request, res: Response): Promise<void> => {
     parseInt(req.params.accountId),
   );
 
-  res.status(200).json(plainToClass(PostDto, posts));
+  res.status(200).json(plainToClass(GobalPostDto, posts));
 };
 
 const getAPost = async (req: Request, res: Response): Promise<void> => {
@@ -28,19 +30,19 @@ const getAPost = async (req: Request, res: Response): Promise<void> => {
     parseInt(req.params.accountId),
   );
 
-  res.status(200).json(plainToClass(PostDto, post));
+  res.status(200).json(plainToClass(GobalPostDto, post));
 };
 
 const getOwnPosts = async (req: Request, res: Response): Promise<void> => {
   const posts = await PostService.getAllMyPosts(req.user.accountId);
 
-  res.status(200).json(plainToClass(PostDto, posts));
+  res.status(200).json(plainToClass(OwnPostDto, posts));
 };
 
 const getMyPost = async (req: Request, res: Response): Promise<void> => {
   const post = await PostService.getMyPost(parseInt(req.params.postId));
 
-  res.status(200).json(plainToClass(PostDto, post));
+  res.status(200).json(plainToClass(OwnPostDto, post));
 };
 
 const updatePost = async (req: Request, res: Response): Promise<void> => {
@@ -52,13 +54,13 @@ const updatePost = async (req: Request, res: Response): Promise<void> => {
     dto,
   );
 
-  res.status(200).json(plainToClass(PostDto, postUpdated));
+  res.status(200).json(plainToClass(GobalPostDto, postUpdated));
 };
 
 const deletePost = async (req: Request, res: Response): Promise<void> => {
   const postDeleted = await PostService.delete(parseInt(req.params.postId));
 
-  res.status(200).json(plainToClass(PostDto, postDeleted));
+  res.status(200).json(plainToClass(GobalPostDto, postDeleted));
 };
 
 const getActionsOfPost = async (req: Request, res: Response): Promise<void> => {
@@ -71,15 +73,13 @@ const getActionsOfPost = async (req: Request, res: Response): Promise<void> => {
 };
 
 const giveActionToPost = async (req: Request, res: Response): Promise<void> => {
-  const accountId = parseInt(req.params.accountId) || req.user.accountId;
-
   const post = await PostService.addAction(
-    accountId,
+    req.user.accountId,
     parseInt(req.params.postId),
     req.params.action,
   );
 
-  res.status(200).json(plainToClass(PostDto, post));
+  res.status(200).json(plainToClass(ReactionPostDto, post));
 };
 
 export {

@@ -1,7 +1,7 @@
 import { Exclude, Expose } from 'class-transformer';
 
 @Exclude()
-class PostDto {
+class GobalPostDto {
   @Expose()
   readonly title: string;
 
@@ -9,4 +9,4 @@ class PostDto {
   readonly content: string;
 }
 
-export { PostDto };
+export { GobalPostDto };
