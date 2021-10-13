@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import AccountService from '../services/account.service';
 
 const getAccount = async (req: Request, res: Response): Promise<Response> => {
-  let id = req.user.accountId || parseInt(req.params.id);
+  let id = req.accountId || parseInt(req.params.id);
   if (req.params.id) {
     id = parseInt(req.params.id)
   }
@@ -15,7 +15,7 @@ const updateAccount = async (
   req: Request,
   res: Response,
 ): Promise<Response> => {
-  let id = req.user.accountId || parseInt(req.params.id);
+  let id = req.accountId || parseInt(req.params.id);
   if (req.params.id) {
     id = parseInt(req.params.id)
   }

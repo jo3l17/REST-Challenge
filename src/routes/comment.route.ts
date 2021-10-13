@@ -29,8 +29,8 @@ commentRouter
     asyncHandler(verifyAuthorization),
     asyncHandler(deleteComment),
   )
-  .get('/:commentId/:action', asyncHandler(getActionOfComment))
-  .patch('/:commentId/:action', asyncHandler(giveActionToComment));
+  .patch('/:commentId/:action', asyncHandler(giveActionToComment))
+  .get('/:commentId/:action', asyncHandler(getActionOfComment));
 
 commentAccountRouter
   .get('/', asyncHandler(getOwnComments))
@@ -46,7 +46,7 @@ commentAccountRouter
 commentPostRouter
   .get('/', asyncHandler(getListComments))
   .post('/', asyncHandler(createComment))
-  .get('/:commentId/:action', asyncHandler(getActionOfComment))
-  .patch('/:commentId/:action', asyncHandler(giveActionToComment));
+  .patch('/:commentId/:action', asyncHandler(giveActionToComment))
+  .get('/:commentId/:action', asyncHandler(getActionOfComment));
 
 export { commentRouter, commentAccountRouter, commentPostRouter };

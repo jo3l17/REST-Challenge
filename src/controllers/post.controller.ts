@@ -9,7 +9,7 @@ const createPost = async (req: Request, res: Response): Promise<void> => {
   const dto = plainToClass(CreatePostDto, req.body);
   await dto.isValid();
 
-  const post = await PostService.create(req.user.accountId, dto);
+  const post = await PostService.create(req.accountId, dto);
 
   res.status(201).json(plainToClass(PostDto, post));
 };
@@ -32,7 +32,7 @@ const getAPost = async (req: Request, res: Response): Promise<void> => {
 };
 
 const getOwnPosts = async (req: Request, res: Response): Promise<void> => {
-  const posts = await PostService.getAllMyPosts(req.user.accountId);
+  const posts = await PostService.getAllMyPosts(req.accountId);
 
   res.status(200).json(plainToClass(PostDto, posts));
 };
@@ -71,7 +71,7 @@ const getActionsOfPost = async (req: Request, res: Response): Promise<void> => {
 };
 
 const giveActionToPost = async (req: Request, res: Response): Promise<void> => {
-  const accountId = parseInt(req.params.accountId) || req.user.accountId;
+  const accountId = parseInt(req.params.accountId) || req.accountId;
 
   const post = await PostService.addAction(
     accountId,
