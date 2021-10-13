@@ -74,7 +74,7 @@ const getActionsOfPost = async (req: Request, res: Response): Promise<void> => {
 
 const giveActionToPost = async (req: Request, res: Response): Promise<void> => {
   const post = await PostService.addAction(
-    req.user.accountId,
+    req.accountId,
     parseInt(req.params.postId),
     req.params.action,
   );

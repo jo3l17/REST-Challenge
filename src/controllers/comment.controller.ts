@@ -80,7 +80,7 @@ const giveActionToComment = async (
   res: Response,
 ): Promise<void> => {
   const comment = await CommentService.addAction(
-    req.user.accountId,
+    req.accountId,
     parseInt(req.params.postId),
     req.params.action,
   );
