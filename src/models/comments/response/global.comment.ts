@@ -1,12 +1,9 @@
 import { Exclude, Expose } from 'class-transformer';
 
 @Exclude()
-class CommentDto {
+class GlobalCommentDto {
   @Expose()
   readonly content: string;
-
-  @Expose()
-  readonly published: boolean;
 }
 
-export { CommentDto };
+export { GlobalCommentDto };

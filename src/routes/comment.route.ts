@@ -11,6 +11,7 @@ import {
   updateComment,
 } from '../controllers/comment.controller';
 import { verifyAuthorization } from '../middleware/comment.middleware';
+import { verifyAction, verifyPublished } from '../middleware/post.middleware';
 
 const commentRouter: Router = Router({ mergeParams: true });
 const commentAccountRouter: Router = Router({ mergeParams: true });
@@ -29,8 +30,18 @@ commentRouter
     asyncHandler(verifyAuthorization),
     asyncHandler(deleteComment),
   )
-  .patch('/:commentId/:action', asyncHandler(giveActionToComment))
-  .get('/:commentId/:action', asyncHandler(getActionOfComment));
+  .get(
+    '/:commentId/:action',
+    asyncHandler(verifyAction),
+    asyncHandler(verifyPublished),
+    asyncHandler(getActionOfComment),
+  )
+  .patch(
+    '/:commentId/:action',
+    asyncHandler(verifyAction),
+    asyncHandler(verifyPublished),
+    asyncHandler(giveActionToComment),
+  );
 
 commentAccountRouter
   .get('/', asyncHandler(getOwnComments))
@@ -46,7 +57,15 @@ commentAccountRouter
 commentPostRouter
   .get('/', asyncHandler(getListComments))
   .post('/', asyncHandler(createComment))
-  .patch('/:commentId/:action', asyncHandler(giveActionToComment))
-  .get('/:commentId/:action', asyncHandler(getActionOfComment));
+  .get(
+    '/:commentId/:action',
+    asyncHandler(verifyAction),
+    asyncHandler(getActionOfComment),
+  )
+  .patch(
+    '/:commentId/:action',
+    asyncHandler(verifyAction),
+    asyncHandler(giveActionToComment),
+  );
 
 export { commentRouter, commentAccountRouter, commentPostRouter };

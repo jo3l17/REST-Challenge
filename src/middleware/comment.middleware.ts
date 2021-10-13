@@ -3,6 +3,8 @@ import { NextFunction, Request, Response } from 'express';
 import createHttpError from 'http-errors';
 import { CommentService } from '../services/comment.service';
 
+const actions = ['like', 'dislike', 'likes', 'dislikes'];
+
 const verifyAuthorization = async (
   req: Request,
   res: Response,
@@ -24,4 +26,33 @@ const verifyAuthorization = async (
   next();
 };
 
-export { verifyAuthorization };
+const verifyPublished = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  const comment = await CommentService.getMyComment(
+    parseInt(req.params.postId),
+  );
+  console.log(comment);
+  if (!comment.published) {
+    throw createHttpError('You can not access to this resource');
+  }
+
+  next();
+};
+
+const verifyAction = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void => {
+  const action = req.params.action;
+  if (!actions.includes(action)) {
+    throw createHttpError(422, `${action} not supported`);
+  }
+
+  next();
+};
+
+export { verifyAuthorization, verifyPublished, verifyAction };
