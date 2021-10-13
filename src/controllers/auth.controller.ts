@@ -1,19 +1,18 @@
+import { plainToClass } from 'class-transformer';
 import { Request, Response } from 'express';
+import { CreateUserDto } from '../models/users/request/create-user.dto';
+import { LoginUserDto } from '../models/users/request/login-user.dto';
 import AuthService from '../services/auth.service';
 import UserService from '../services/user.service';
 
 const signup = async (req: Request, res: Response): Promise<Response> => {
-  const data = req.body;
-  const password = req.body.password;
-  delete data.password;
-  const token = await AuthService.validateSignupData(data, password);
+  const token = await AuthService.signup(plainToClass(CreateUserDto, req.body));
 
   return res.status(200).json(token);
 };
 
 const login = async (req: Request, res: Response): Promise<Response> => {
-  const { email, password } = req.body;
-  const token = await AuthService.validateLoginData(email, password);
+  const token = await AuthService.login(plainToClass(LoginUserDto, req.body));
 
   return res.status(200).json(token);
 };
@@ -31,7 +30,7 @@ const passwordRecover = async (
 ): Promise<Response> => {
   const { email } = req.body;
   const user = await UserService.findByEmail(email);
-  const token = await AuthService.recoverPasswordService(user);
+  const token = await AuthService.recoverPassword(user);
 
   return res.status(200).json({ token });
 };

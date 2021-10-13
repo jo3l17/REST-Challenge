@@ -14,10 +14,10 @@ const verifyAuthorization = async (
     parseInt(req.params.commentId),
   );
 
-  const currentAccount = req.user.accountId;
+  const currentAccount = req.accountId;
 
   if (
-    currentAccount !== Role.moderator ||
+    req.user.role !== Role.moderator ||
     currentAccount !== comment.accountId
   ) {
     throw createHttpError(401, 'You do not have authorization for this action');

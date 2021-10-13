@@ -2,18 +2,22 @@ import { PrismaClient, User } from '.prisma/client';
 import createHttpError from 'http-errors';
 import { userModel, userPersonalData } from '../models/user.model';
 import { CreateUserDto } from '../models/users/request/create-user.dto';
+import { UserMiddlewareDto } from '../models/users/response/user-middleware.dto';
+import { UserDto } from '../models/users/response/user.dto';
 import { createEmail, sgMail } from '../utils/sendgrid.util';
 import accountService from './account.service';
+import AuthService from './auth.service';
 import authService from './auth.service';
 const prisma = new PrismaClient();
 
 class UserService {
   static create = async (data: CreateUserDto): Promise<User> => {
-    const user = await prisma.user.create({ data });
+    const HASH = await AuthService.hashPassword(data.password);
+    const user = await prisma.user.create({ data: { ...data, password: HASH } });
     return user;
   };
 
-  static findByEmail = async (email: string) => {
+  static findByEmail = async (email: string): Promise<UserDto> => {
     const user = await prisma.user.findUnique({
       where: { email },
     });
@@ -41,7 +45,7 @@ class UserService {
     return user;
   };
 
-  static findById = async (id: number) => {
+  static findById = async (id: number): Promise<UserMiddlewareDto> => {
     const user = await prisma.user.findUnique({
       ...userPersonalData,
       where: { id },

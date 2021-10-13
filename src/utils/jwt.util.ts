@@ -3,14 +3,14 @@ const expiresIn = '1h';
 
 type jwtData = {
   id: number;
-  role: 'user' | 'moderator';
+  role: role;
   type: sessionType;
   accountId?: number;
 };
 
 type jwtPayload = {
   id: number;
-  role: 'user' | 'moderator';
+  role: role;
   type: sessionType;
   accountId?: number;
   iat: number;
@@ -18,5 +18,6 @@ type jwtPayload = {
 };
 
 type sessionType = 'session' | 'password' | 'email' | 'verification';
+type role = 'user' | 'moderator'
 
-export { secret, expiresIn, jwtData, jwtPayload, sessionType };
+export { secret, expiresIn, jwtData, jwtPayload, sessionType, role };

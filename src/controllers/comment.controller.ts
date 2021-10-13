@@ -11,9 +11,9 @@ const createComment = async (req: Request, res: Response): Promise<void> => {
   const dto = plainToClass(CreateCommentDto, req.body);
   dto.isValid();
 
-  console.log(req.user.accountId);
+  console.log(req.accountId);
   const comment = await CommentService.create(
-    req.user.accountId,
+    req.accountId,
     parseInt(req.params.postId),
     dto,
   );
@@ -22,7 +22,7 @@ const createComment = async (req: Request, res: Response): Promise<void> => {
 };
 
 const getOwnComments = async (req: Request, res: Response): Promise<void> => {
-  const comments = await CommentService.read(req.user.accountId);
+  const comments = await CommentService.read(req.accountId);
 
   res.status(200).json(plainToClass(OwnCommentDto, comments));
 };

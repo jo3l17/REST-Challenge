@@ -116,7 +116,6 @@ class CommentService {
     commentId: number,
     actionType: string,
   ): Promise<FetchActionCommentDto> => {
-    this.verifyAction(actionType);
     const action = await prisma.comment.findUnique({
       where: {
         id: commentId,
@@ -149,9 +148,6 @@ class CommentService {
     commentId: number,
     action: string,
   ): Promise<Comment> => {
-    const newAction = action + 's';
-    this.verifyAction(newAction);
-
     const actionByAccount = await prisma.commentLike.findFirst({
       select: {
         id: true,
@@ -165,13 +161,15 @@ class CommentService {
             },
             commentId: {
               equals: commentId,
-            },
+            }
           },
         ],
       },
     });
 
     let comment;
+    const newAction = action + 's';
+    
     if (actionByAccount) {
       const prevAction = actionByAccount?.type + 's';
 
@@ -247,12 +245,5 @@ class CommentService {
 
     return comment;
   };
-
-  private static verifyAction = async (action: string) => {
-    if (action !== 'likes' && action !== 'dislikes') {
-      throw createHttpError(422, `${action} not supported`);
-    }
-  };
-}
 
 export { CommentService };
