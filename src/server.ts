@@ -8,6 +8,7 @@ import { accountRouter } from './routes/account.route';
 import { userRoute } from './routes/user.route';
 import asyncHandler from 'express-async-handler';
 import { errorHandler } from './utils/error.util';
+import { postReportRouter } from './routes/report.route';
 
 const prisma = new PrismaClient();
 const app = express();
@@ -23,6 +24,7 @@ app
   .use('/accounts', asyncHandler(accountRouter))
   .use('/users', asyncHandler(userRoute))
   .use('/posts', postRouter)
+  .use('/reports', postReportRouter)
   .use(errorHandler);
 
 app.listen(PORT, async () => {

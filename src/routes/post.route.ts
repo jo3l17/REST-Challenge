@@ -17,12 +17,14 @@ import {
   verifyPublished,
 } from '../middleware/post.middleware';
 import { commentRouter, commentPostRouter } from './comment.route';
+import { reportRouter } from './report.route';
 
 const postRouter: Router = Router({ mergeParams: true });
 const postAccountRouter: Router = Router({ mergeParams: true });
 
 postRouter
   .use('/:postId/comments', commentRouter)
+  .use('/:postId/report', reportRouter)
   .get('/', asyncHandler(getPostList))
   .get('/:postId', asyncHandler(getAPost))
   .get(

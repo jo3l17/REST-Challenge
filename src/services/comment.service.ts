@@ -161,7 +161,7 @@ class CommentService {
             },
             commentId: {
               equals: commentId,
-            }
+            },
           },
         ],
       },
@@ -246,5 +246,4 @@ class CommentService {
     return comment;
   };
 }
-
 export { CommentService };

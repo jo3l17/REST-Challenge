@@ -11,7 +11,6 @@ const createComment = async (req: Request, res: Response): Promise<void> => {
   const dto = plainToClass(CreateCommentDto, req.body);
   dto.isValid();
 
-  console.log(req.accountId);
   const comment = await CommentService.create(
     req.accountId,
     parseInt(req.params.postId),
