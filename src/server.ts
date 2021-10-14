@@ -4,7 +4,6 @@ import morgan from 'morgan';
 import { PrismaClient } from '.prisma/client';
 import { authRouter } from './routes/auth.route';
 import { postRouter } from './routes/post.route';
-import { commentRouter } from './routes/comment.route';
 import { accountRouter } from './routes/account.route';
 import { userRoute } from './routes/user.route';
 import asyncHandler from 'express-async-handler';
@@ -28,7 +27,7 @@ app
   .use('/reports', postReportRouter)
   .use(errorHandler);
 
-const server = app.listen(PORT, async () => {
+app.listen(PORT, async () => {
   try {
     await prisma.$connect();
   } catch (e) {

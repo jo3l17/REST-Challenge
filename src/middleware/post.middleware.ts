@@ -12,9 +12,9 @@ const verifyAuthorization = async (
 ): Promise<void> => {
   const post = await PostService.getMyPost(parseInt(req.params.postId));
 
-  const currentAccount = req.user.accountId;
+  const currentAccount = req.accountId;
 
-  if (currentAccount !== Role.moderator || currentAccount !== post.accountId) {
+  if (req.user.role !== Role.moderator || currentAccount !== post.accountId) {
     throw createHttpError(401, 'You do not have authorization for this action');
   }
 

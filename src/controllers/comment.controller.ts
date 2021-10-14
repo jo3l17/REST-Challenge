@@ -12,7 +12,7 @@ const createComment = async (req: Request, res: Response): Promise<void> => {
   dto.isValid();
 
   const comment = await CommentService.create(
-    req.user.accountId,
+    req.accountId,
     parseInt(req.params.postId),
     dto,
   );
@@ -21,7 +21,7 @@ const createComment = async (req: Request, res: Response): Promise<void> => {
 };
 
 const getOwnComments = async (req: Request, res: Response): Promise<void> => {
-  const comments = await CommentService.read(req.user.accountId);
+  const comments = await CommentService.read(req.accountId);
 
   res.status(200).json(plainToClass(OwnCommentDto, comments));
 };
@@ -79,7 +79,7 @@ const giveActionToComment = async (
   res: Response,
 ): Promise<void> => {
   const comment = await CommentService.addAction(
-    req.user.accountId,
+    req.accountId,
     parseInt(req.params.postId),
     req.params.action,
   );

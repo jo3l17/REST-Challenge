@@ -7,31 +7,32 @@ import {
   sessionType,
 } from '../utils/jwt.util';
 import jwt, { TokenExpiredError } from 'jsonwebtoken';
-import { PrismaClient, User } from '.prisma/client';
+import { PrismaClient } from '.prisma/client';
 import { Request } from 'express';
-import { tokenData, tokenModel } from '../models/token.model';
+import { tokenData } from '../models/token.model';
 import userService from './user.service';
 import createHttpError from 'http-errors';
 import accountService from './account.service';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import { createEmail, sgMail } from '../utils/sendgrid.util';
-import { userModel } from '../models/user.model';
-import { plainToClass } from 'class-transformer';
 import { CreateUserDto } from '../models/users/request/create-user.dto';
+import { TokenResponseDto } from '../models/token/response/token-response.dto';
+import { LoginUserDto } from '../models/users/request/login-user.dto';
+import { TokenModelDto } from '../models/token/response/token-model.dto';
+import { UserDto } from '../models/users/response/user.dto';
 const prisma = new PrismaClient();
 
 class AuthService {
   static validatePassword = async (
     dataPassword: string,
     userPassword: string,
-  ) => {
+  ): Promise<boolean> => {
     return await bcrypt.compare(dataPassword, userPassword);
   };
 
-  static createToken = async (data: jwtData): Promise<tokenModel> => {
+  static createToken = async (data: jwtData): Promise<TokenResponseDto> => {
     if (data.role === 'user' && data.type === 'session') {
       const account = await accountService.findByUserId(data.id);
-      data.accountId = account!.id;
+      data.accountId = account?.id;
     }
     const token = this.generateToken(data);
     const date = new Date();
@@ -57,7 +58,7 @@ class AuthService {
     return token;
   };
 
-  static verifyToken = async (token: string, type: sessionType = 'session') => {
+  static verifyToken = async (token: string, type: sessionType = 'session'): Promise<jwtPayload> => {
     try {
       const verifiedToken = jwt.verify(token, secret) as jwtPayload;
       if (verifiedToken.type !== type) {
@@ -79,7 +80,7 @@ class AuthService {
     }
   };
 
-  static sendNewVerification = async (token: string) => {
+  static sendNewVerification = async (token: string): Promise<void> => {
     const tokenToUpdate = await this.findToken(token);
     const user = await userService.findById(tokenToUpdate.userId);
     const newToken = await this.updateToken(tokenToUpdate.id, user.id);
@@ -98,88 +99,78 @@ class AuthService {
     }
   };
 
-  static deleteToken = async (id: number) => {
-    const deleteToken = await prisma.token.delete({
+  static deleteToken = async (id: number): Promise<void> => {
+    await prisma.token.delete({
       where: {
         id,
       },
     });
-
-    return deleteToken;
   };
 
-  static deleteTokenByUserId = async (userId: number) => {
-    const deleteToken = await prisma.token.deleteMany({
+  static deleteTokenByUserId = async (userId: number): Promise<void> => {
+    await prisma.token.deleteMany({
       where: {
         userId,
       },
     });
-
-    return deleteToken;
   };
 
-  static validateSignupData = async (data: User, password: string) => {
-    if (!data.email || !password || !data.name) {
-      throw createHttpError(400, 'email, name and password required');
+  static uniqueEmail = async (email: string): Promise<boolean> => {
+    const user = await prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
+    if (user) return false;
+    return true;
+  }
+
+  static signup = async (data: CreateUserDto): Promise<TokenResponseDto> => {
+    await data.isValid();
+    const validEmail = await this.uniqueEmail(data.email);
+    if (!validEmail) {
+      throw createHttpError(400, 'This email is already registered');
     }
+    const user = await userService.create(data);
+    const token = await this.createToken({
+      id: user.id,
+      role: user.role,
+      type: 'verification',
+    });
+    const msg = createEmail(
+      data.email,
+      `token signup`,
+      `Hello ${data.name} use patch to this url to verify your account`,
+      `http://localhost:3000/users/${token.token}/verify`,
+      token.token,
+    );
     try {
-      const HASH = await this.hashPassword(password);
-      const dto = plainToClass(CreateUserDto, { ...data, password: HASH })
-      const user = await userService.create(dto);
-      const token = await this.createToken({
-        id: user.id,
-        role: user.role,
-        type: 'verification',
-      });
-      const msg = createEmail(
-        data.email,
-        `token signup`,
-        `Hello ${data.name} use patch to this url to verify your account`,
-        `http://localhost:3000/users/${token.token}/verify`,
-        token.token,
-      );
-
       await sgMail.send(msg);
-
       return token;
     } catch (e) {
       console.log(e);
-      if (e instanceof PrismaClientKnownRequestError && e.code === 'P2002') {
-        throw createHttpError(400, 'email already in use');
-      }
       throw createHttpError(500, 'there was an error');
     }
   };
 
-  static validateLoginData = async (email: string, password: string) => {
-    if (!email || !password) {
-      throw createHttpError(400, 'Email, and Password required');
-    }
-
-    const user = await userService.findByEmail(email);
-
-    if (!user) {
-      throw createHttpError(400, 'email not registered');
-    }
-
-    if (!user.verifiedAt) {
-      throw createHttpError(400, 'email not verified');
-    }
-
-    const passwordExists = await this.validatePassword(password, user.password);
-
+  static login = async (data: LoginUserDto): Promise<TokenResponseDto> => {
+    await data.isValid()
+    const user = await userService.findByEmail(data.email);
+    const passwordExists = await this.validatePassword(data.password, user.password);
     if (!passwordExists) {
       throw createHttpError(400, 'The email or password are wrong');
     }
-
-    const data: jwtData = { id: user.id, role: user.role, type: 'session' };
-
-    const token = await this.createToken(data);
+    const tokenData: jwtData = { id: user.id, role: user.role, type: 'session' };
+    const account = await accountService.findOne(user.id);
+    if (account) {
+      tokenData.accountId = account.id
+    }
+    const token = await this.createToken(tokenData);
 
     return token;
   };
 
-  static recoverPasswordService = async (user: userModel) => {
+  static recoverPassword = async (user: UserDto): Promise<string> => {
     const token = this.generateToken({
       id: user.id,
       role: user.role,
@@ -197,13 +188,13 @@ class AuthService {
     return token;
   };
 
-  static hashPassword = async (password: string) => {
+  static hashPassword = async (password: string): Promise<string> => {
     const hashedPassword = await bcrypt.hash(password, 12);
     return hashedPassword;
   };
 
-  static findHeaderToken = async (req: Request) => {
-    const headerToken = req.headers.authorization!.split('Bearer ')[1].trim();
+  static findHeaderToken = async (req: Request): Promise<TokenModelDto> => {
+    const headerToken = req.headers.authorization?.split('Bearer ')[1].trim();
     const token = await prisma.token.findFirst({
       select: {
         ...tokenData.select,
@@ -213,6 +204,7 @@ class AuthService {
         token: headerToken,
       },
     });
+
     if (!token) {
       throw createHttpError(404, 'no token found');
     }
@@ -220,7 +212,7 @@ class AuthService {
     return token;
   };
 
-  static findToken = async (token: string) => {
+  static findToken = async (token: string): Promise<TokenModelDto> => {
     const tokenRes = await prisma.token.findFirst({
       select: {
         ...tokenData.select,
@@ -241,9 +233,9 @@ class AuthService {
     id: number,
     userId: number,
     type: sessionType = 'session',
-  ) => {
+  ): Promise<TokenResponseDto> => {
     const user = await userService.findById(userId);
-    const account = await accountService.findByUserId(userId, true);
+    const account = await accountService.findByUserId(userId);
     const data: jwtData = {
       id: id,
       role: user.role,

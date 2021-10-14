@@ -11,7 +11,7 @@ const createPost = async (req: Request, res: Response): Promise<void> => {
   const dto = plainToClass(CreatePostDto, req.body);
   await dto.isValid();
 
-  const post = await PostService.create(req.user.accountId, dto);
+  const post = await PostService.create(req.accountId, dto);
 
   res.status(201).json(plainToClass(OwnPostDto, post));
 };
@@ -34,7 +34,7 @@ const getAPost = async (req: Request, res: Response): Promise<void> => {
 };
 
 const getOwnPosts = async (req: Request, res: Response): Promise<void> => {
-  const posts = await PostService.getAllMyPosts(req.user.accountId);
+  const posts = await PostService.getAllMyPosts(req.accountId);
 
   res.status(200).json(plainToClass(OwnPostDto, posts));
 };

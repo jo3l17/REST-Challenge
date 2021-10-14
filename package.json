@@ -4,7 +4,7 @@
   "description": "rest challenge for ravn development nerdery program",
   "main": "index.js",
   "scripts": {
-    "test": "jest",
+    "test": "npx dotenv -e env.test jest -i",
     "format": "prettier --write \"src/**/*.ts\" ",
     "lint": "eslint .",
     "migrate": "prisma migrate dev --preview-feature",
