@@ -12,12 +12,14 @@ import {
 } from '../controllers/comment.controller';
 import { verifyAuthorization } from '../middleware/comment.middleware';
 import { verifyAction, verifyPublished } from '../middleware/post.middleware';
+import { reportRouter } from './report.route';
 
 const commentRouter: Router = Router({ mergeParams: true });
 const commentAccountRouter: Router = Router({ mergeParams: true });
 const commentPostRouter: Router = Router({ mergeParams: true });
 
 commentRouter
+  .use('/:commentId/report', reportRouter)
   .get('/', asyncHandler(getListComments))
   .post('/', asyncHandler(createComment))
   .patch(
