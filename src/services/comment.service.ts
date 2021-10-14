@@ -161,7 +161,7 @@ class CommentService {
             },
             commentId: {
               equals: commentId,
-            }
+            },
           },
         ],
       },
@@ -169,7 +169,7 @@ class CommentService {
 
     let comment;
     const newAction = action + 's';
-    
+
     if (actionByAccount) {
       const prevAction = actionByAccount?.type + 's';
 
@@ -245,5 +245,5 @@ class CommentService {
 
     return comment;
   };
-
+}
 export { CommentService };

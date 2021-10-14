@@ -10,7 +10,7 @@ const createReport = async (req: Request, res: Response): Promise<void> => {
   dto.isValid();
 
   const report = await ReportService.createReport(
-    req.user.accountId,
+    req.accountId,
     res.locals.type,
     parseInt(res.locals.resourceId),
     dto,
