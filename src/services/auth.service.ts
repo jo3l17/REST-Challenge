@@ -91,12 +91,7 @@ class AuthService {
       `http://localhost:3000/users/${newToken.token}/verify`,
       newToken.token,
     );
-
-    try {
-      await sgMail.send(msg);
-    } catch (e) {
-      throw createHttpError(500, 'there was an Error sending the email');
-    }
+    await sgMail.send(msg);
   };
 
   static deleteToken = async (id: number): Promise<void> => {

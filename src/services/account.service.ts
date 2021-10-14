@@ -33,7 +33,7 @@ class AccountService {
     return account;
   };
 
-  static findByUserId = async (userId: number): Promise<resAccountModel> => {
+  static findByUserId = async (userId: number | undefined): Promise<resAccountModel | null> => {
     const account = await prisma.account.findUnique({
       ...accountData,
       where: {
@@ -41,9 +41,9 @@ class AccountService {
       },
     });
 
-    if (!account) {
-      throw createHttpError(404, 'no account found');
-    }
+    // if (!account) {
+    //   throw createHttpError(404, 'no account found');
+    // }
 
     return account;
   };
