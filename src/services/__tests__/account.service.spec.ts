@@ -7,6 +7,7 @@ import AccountService from '../account.service';
 const prisma = new PrismaClient();
 let user: User;
 let account: Account;
+
 jest.mock('http-errors', () => {
   return jest.fn();
 });

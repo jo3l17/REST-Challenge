@@ -1,10 +1,10 @@
-import { PrismaClient, User } from '.prisma/client';
+import { PrismaClient, Role, User } from '.prisma/client';
 import createHttpError from 'http-errors';
 import { userPersonalData } from '../models/user.model';
 import { CreateUserDto } from '../models/users/request/create-user.dto';
 import { UserMiddlewareDto } from '../models/users/response/user-middleware.dto';
 import { UserDto } from '../models/users/response/user.dto';
-import { createEmail, sgMail } from '../utils/sendgrid.util';
+import { createEmail, HOST, PORT, sgMail } from '../utils/sendgrid.util';
 import accountService from './account.service';
 import AuthService from './auth.service';
 import authService from './auth.service';
@@ -66,7 +66,7 @@ class UserService {
 
   static updateVerification = async (
     id: number,
-    role: string,
+    role: Role,
   ): Promise<User> => {
     const user = await prisma.user.update({
       where: { id },
@@ -127,7 +127,7 @@ class UserService {
       temporalEmail,
       `Email change`,
       `Hello ${user.name} use patch to this url to verify your new email`,
-      `http://localhost:3000/users/email/${token}`,
+      `http://${HOST}${PORT ? `:${PORT}` : ''}/users/email/${token}`,
       token,
     );
     await sgMail.send(msg);

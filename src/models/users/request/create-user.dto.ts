@@ -1,6 +1,6 @@
+import { Role } from '.prisma/client'
 import { Expose, Exclude } from 'class-transformer'
 import { IsEmail, IsNotEmpty, IsString, Length } from 'class-validator'
-import { role } from '../../../utils/jwt.util'
 import { BaseDto } from '../../base.dto'
 
 @Exclude()
@@ -21,5 +21,5 @@ export class CreateUserDto extends BaseDto {
 
   @Expose()
   @IsString()
-  readonly role: role
+  readonly role: Role
 }

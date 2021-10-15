@@ -7,12 +7,12 @@ import {
   sessionType,
 } from '../utils/jwt.util';
 import jwt, { TokenExpiredError } from 'jsonwebtoken';
-import { Prisma, PrismaClient, Token } from '.prisma/client';
+import { Prisma, PrismaClient } from '.prisma/client';
 import { Request } from 'express';
 import userService from './user.service';
 import createHttpError from 'http-errors';
 import accountService from './account.service';
-import { createEmail, sgMail } from '../utils/sendgrid.util';
+import { createEmail, HOST, PORT, sgMail } from '../utils/sendgrid.util';
 import { CreateUserDto } from '../models/users/request/create-user.dto';
 import { TokenResponseDto } from '../models/token/response/token-response.dto';
 import { LoginUserDto } from '../models/users/request/login-user.dto';
@@ -90,13 +90,13 @@ class AuthService {
       user.email,
       `token signup`,
       `Hello ${user.name} use patch to this url to verify your account`,
-      `http://localhost:3000/users/${newToken.token}/verify`,
+      `http://${HOST}${PORT ? `:${PORT}` : ''}/users/${newToken.token}/verify`,
       newToken.token,
     );
     await sgMail.send(msg);
   };
 
-  static deleteToken = async (id: number): Promise<Token> => {
+  static deleteToken = async (id: number): Promise<TokenModelDto> => {
     const deletedToken = await prisma.token.delete({
       where: {
         id,
@@ -142,7 +142,7 @@ class AuthService {
       data.email,
       `token signup`,
       `Hello ${data.name} use patch to this url to verify your account`,
-      `http://localhost:3000/users/${token.token}/verify`,
+      `http://${HOST}${PORT ? `:${PORT}` : ''}/users/${token.token}/verify`,
       token.token,
     );
     await sgMail.send(msg);
@@ -177,7 +177,7 @@ class AuthService {
       user.email,
       `Password Recover`,
       `Hello ${user.name} use patch to this url to change you password with your new password`,
-      `http://localhost:3000/users/passwords/${token}`,
+      `http://${HOST}${PORT ? `:${PORT}` : ''}/users/passwords/${token}`,
       token,
     );
     await sgMail.send(msg);

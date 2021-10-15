@@ -2,14 +2,8 @@ import express from 'express';
 import { json, urlencoded } from 'body-parser';
 import morgan from 'morgan';
 import { PrismaClient } from '.prisma/client';
-import { authRouter } from './routes/auth.route';
-import { postRouter } from './routes/post.route';
-import { accountRouter } from './routes/account.route';
-import { userRoute } from './routes/user.route';
-import asyncHandler from 'express-async-handler';
-import { errorHandler } from './utils/error.util';
-import { postReportRouter } from './routes/report.route';
 import createHttpError from 'http-errors';
+import { router } from './router';
 
 export const prisma = new PrismaClient({
   rejectOnNotFound: (error) => new createHttpError.NotFound(error.message),
@@ -23,13 +17,7 @@ app.use(morgan('dev'));
 app.use(urlencoded({ extended: false }));
 app.use(json());
 
-app
-  .use(asyncHandler(authRouter))
-  .use('/accounts', asyncHandler(accountRouter))
-  .use('/users', asyncHandler(userRoute))
-  .use('/posts', postRouter)
-  .use('/reports', postReportRouter)
-  .use(errorHandler);
+app.use('/api/v1', router(app))
 
 app.listen(PORT, async () => {
   try {
@@ -40,5 +28,5 @@ app.listen(PORT, async () => {
   } finally {
     await prisma.$disconnect();
   }
-  console.log(`App running at http://${HOST}:${PORT}`);
+  console.log(`App running at http://${HOST}${PORT ? `:${PORT}` : ''}`);
 });

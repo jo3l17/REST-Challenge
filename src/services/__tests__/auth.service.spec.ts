@@ -1,4 +1,4 @@
-import { Account, PrismaClient, User } from '.prisma/client';
+import { PrismaClient, User } from '.prisma/client';
 import { hashSync } from 'bcrypt';
 import { jwtData } from '../../utils/jwt.util';
 import AuthService from '../auth.service';
@@ -20,7 +20,6 @@ jest.mock('../../utils/sendgrid.util');
 
 let user: User;
 let authenticatedUser: User;
-let verifiedUser: User;
 
 beforeAll(async () => {
   await prisma.$connect();
@@ -44,7 +43,7 @@ beforeAll(async () => {
       }
     },
   });
-  verifiedUser = await prisma.user.create({
+  await prisma.user.create({
     data: {
       email: 'cvo523@hotmail.com',
       name: 'Joel Valdez',
