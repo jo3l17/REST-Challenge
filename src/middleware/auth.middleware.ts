@@ -19,7 +19,10 @@ const protect = async (
     return res.status(401).json({ message: 'no user' });
   }
 
-  req.user = { ...user, accountId: payload.accountId || null };
+  req.user = { ...user };
+  if (payload.accountId) {
+    req.accountId = payload.accountId
+  }
   next();
 };
 

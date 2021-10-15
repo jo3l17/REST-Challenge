@@ -7,10 +7,9 @@ const userPersonalData = Prisma.validator<Prisma.UserArgs>()({
     role: true,
     name: true,
     verifiedAt: true,
+    password: true,
     temporalEmail: true,
   },
 });
 
-type userModel = Prisma.UserGetPayload<typeof userPersonalData>;
-
-export { userModel, userPersonalData };
+export { userPersonalData };

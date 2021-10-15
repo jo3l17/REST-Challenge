@@ -4,21 +4,39 @@ import {
   createComment,
   deleteComment,
   getOwnComments,
-  getMyPost,
+  getMyComment,
   getListComments,
   getActionOfComment,
   giveActionToComment,
   updateComment,
+  getACommment,
 } from '../controllers/comment.controller';
-import { verifyAuthorization } from '../middleware/comment.middleware';
+import {
+  verifyAction,
+  verifyAuthorization,
+  verifyPublished,
+} from '../middleware/comment.middleware';
+import { reportAccountRouter } from './report.route';
 
 const commentRouter: Router = Router({ mergeParams: true });
 const commentAccountRouter: Router = Router({ mergeParams: true });
-const commentPostRouter: Router = Router({ mergeParams: true });
+const commentMeRouter: Router = Router({ mergeParams: true });
 
 commentRouter
   .get('/', asyncHandler(getListComments))
+  .get('/:commentId', asyncHandler(verifyPublished), asyncHandler(getACommment))
+  .get(
+    '/:commentId/:action',
+    asyncHandler(verifyAction),
+    asyncHandler(verifyPublished),
+    asyncHandler(getActionOfComment),
+  );
+
+commentAccountRouter
+  .use('/:commentId/report', reportAccountRouter)
+  .get('/', asyncHandler(getListComments))
   .post('/', asyncHandler(createComment))
+  .get('/:commentId', asyncHandler(verifyPublished), asyncHandler(getACommment))
   .patch(
     '/:commentId',
     asyncHandler(verifyAuthorization),
@@ -29,13 +47,28 @@ commentRouter
     asyncHandler(verifyAuthorization),
     asyncHandler(deleteComment),
   )
-  .get('/:commentId/:action', asyncHandler(getActionOfComment))
-  .patch('/:commentId/:action', asyncHandler(giveActionToComment));
+  .get(
+    '/:commentId/:action',
+    asyncHandler(verifyAction),
+    asyncHandler(verifyPublished),
+    asyncHandler(getActionOfComment),
+  )
+  .patch(
+    '/:commentId/:action',
+    asyncHandler(verifyAction),
+    asyncHandler(verifyPublished),
+    asyncHandler(giveActionToComment),
+  );
 
-commentAccountRouter
+commentMeRouter
   .get('/', asyncHandler(getOwnComments))
-  .get('/:commentId', asyncHandler(getMyPost))
+  .get('/:commentId', asyncHandler(getMyComment))
   .patch('/:commentId', asyncHandler(updateComment))
+  .get(
+    '/:commentId/:action',
+    asyncHandler(verifyAction),
+    asyncHandler(getActionOfComment),
+  )
   .patch('/:commentId/:action', asyncHandler(giveActionToComment))
   .delete(
     '/:commenttId',
@@ -43,10 +76,4 @@ commentAccountRouter
     asyncHandler(deleteComment),
   );
 
-commentPostRouter
-  .get('/', asyncHandler(getListComments))
-  .post('/', asyncHandler(createComment))
-  .get('/:commentId/:action', asyncHandler(getActionOfComment))
-  .patch('/:commentId/:action', asyncHandler(giveActionToComment));
-
-export { commentRouter, commentAccountRouter, commentPostRouter };
+export { commentRouter, commentMeRouter, commentAccountRouter };

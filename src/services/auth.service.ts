@@ -7,13 +7,12 @@ import {
   sessionType,
 } from '../utils/jwt.util';
 import jwt, { TokenExpiredError } from 'jsonwebtoken';
-import { PrismaClient } from '.prisma/client';
+import { Prisma, PrismaClient } from '.prisma/client';
 import { Request } from 'express';
-import { tokenData } from '../models/token.model';
 import userService from './user.service';
 import createHttpError from 'http-errors';
 import accountService from './account.service';
-import { createEmail, sgMail } from '../utils/sendgrid.util';
+import { createEmail, HOST, PORT, sgMail } from '../utils/sendgrid.util';
 import { CreateUserDto } from '../models/users/request/create-user.dto';
 import { TokenResponseDto } from '../models/token/response/token-response.dto';
 import { LoginUserDto } from '../models/users/request/login-user.dto';
@@ -38,7 +37,11 @@ class AuthService {
     const date = new Date();
     date.setHours(date.getHours() + 1);
     const prismaToken = await prisma.token.create({
-      ...tokenData,
+      select: {
+        token: true,
+        expirationDate: true,
+        userId: true,
+      },
       data: {
         token,
         userId: data.id,
@@ -73,7 +76,6 @@ class AuthService {
           await this.sendNewVerification(token);
           throw createHttpError(100, 'token expired, new token sent to email');
         }
-
         throw createHttpError(498, 'token expired');
       }
       throw createHttpError(500, 'token error');
@@ -88,31 +90,30 @@ class AuthService {
       user.email,
       `token signup`,
       `Hello ${user.name} use patch to this url to verify your account`,
-      `http://localhost:3000/users/${newToken.token}/verify`,
+      `http://${HOST}${PORT ? `:${PORT}` : ''}/users/${newToken.token}/verify`,
       newToken.token,
     );
-
-    try {
-      await sgMail.send(msg);
-    } catch (e) {
-      throw createHttpError(500, 'there was an Error sending the email');
-    }
+    await sgMail.send(msg);
   };
 
-  static deleteToken = async (id: number): Promise<void> => {
-    await prisma.token.delete({
+  static deleteToken = async (id: number): Promise<TokenModelDto> => {
+    const deletedToken = await prisma.token.delete({
       where: {
         id,
       },
     });
+
+    return deletedToken;
   };
 
-  static deleteTokenByUserId = async (userId: number): Promise<void> => {
-    await prisma.token.deleteMany({
+  static deleteTokenByUserId = async (userId: number): Promise<Prisma.BatchPayload> => {
+    const deletedTokens = await prisma.token.deleteMany({
       where: {
         userId,
       },
     });
+
+    return deletedTokens;
   };
 
   static uniqueEmail = async (email: string): Promise<boolean> => {
@@ -126,12 +127,12 @@ class AuthService {
   }
 
   static signup = async (data: CreateUserDto): Promise<TokenResponseDto> => {
-    await data.isValid();
     const validEmail = await this.uniqueEmail(data.email);
     if (!validEmail) {
       throw createHttpError(400, 'This email is already registered');
     }
     const user = await userService.create(data);
+
     const token = await this.createToken({
       id: user.id,
       role: user.role,
@@ -141,33 +142,29 @@ class AuthService {
       data.email,
       `token signup`,
       `Hello ${data.name} use patch to this url to verify your account`,
-      `http://localhost:3000/users/${token.token}/verify`,
+      `http://${HOST}${PORT ? `:${PORT}` : ''}/users/${token.token}/verify`,
       token.token,
     );
-    try {
-      await sgMail.send(msg);
-      return token;
-    } catch (e) {
-      console.log(e);
-      throw createHttpError(500, 'there was an error');
-    }
+    await sgMail.send(msg);
+    return token;
   };
 
   static login = async (data: LoginUserDto): Promise<TokenResponseDto> => {
-    await data.isValid()
     const user = await userService.findByEmail(data.email);
     const passwordExists = await this.validatePassword(data.password, user.password);
     if (!passwordExists) {
       throw createHttpError(400, 'The email or password are wrong');
     }
     const tokenData: jwtData = { id: user.id, role: user.role, type: 'session' };
-    const account = await accountService.findOne(user.id);
+    const account = await accountService.findByUserId(user.id);
+    let token
     if (account) {
-      tokenData.accountId = account.id
+      tokenData.accountId = account.id;
     }
-    const token = await this.createToken(tokenData);
 
+    token = await this.createToken(tokenData);
     return token;
+
   };
 
   static recoverPassword = async (user: UserDto): Promise<string> => {
@@ -180,7 +177,7 @@ class AuthService {
       user.email,
       `Password Recover`,
       `Hello ${user.name} use patch to this url to change you password with your new password`,
-      `http://localhost:3000/users/passwords/${token}`,
+      `http://${HOST}${PORT ? `:${PORT}` : ''}/users/passwords/${token}`,
       token,
     );
     await sgMail.send(msg);
@@ -194,11 +191,18 @@ class AuthService {
   };
 
   static findHeaderToken = async (req: Request): Promise<TokenModelDto> => {
-    const headerToken = req.headers.authorization?.split('Bearer ')[1].trim();
+    const bearer = req.headers.authorization;
+    if (!bearer || !bearer.startsWith('Bearer ')) {
+      throw createHttpError(401, 'no auth');
+    }
+
+    const headerToken = bearer.split('Bearer ')[1].trim();
     const token = await prisma.token.findFirst({
       select: {
-        ...tokenData.select,
-        id: true,
+        token: true,
+        expirationDate: true,
+        userId: true,
+        id: true
       },
       where: {
         token: headerToken,
@@ -215,8 +219,10 @@ class AuthService {
   static findToken = async (token: string): Promise<TokenModelDto> => {
     const tokenRes = await prisma.token.findFirst({
       select: {
-        ...tokenData.select,
         id: true,
+        token: true,
+        expirationDate: true,
+        userId: true,
       },
       where: {
         token,
@@ -250,7 +256,11 @@ class AuthService {
     const date = new Date();
     date.setHours(date.getHours() + 1);
     const updatedToken = await prisma.token.update({
-      ...tokenData,
+      select: {
+        token: true,
+        expirationDate: true,
+        userId: true,
+      },
       where: {
         id,
       },

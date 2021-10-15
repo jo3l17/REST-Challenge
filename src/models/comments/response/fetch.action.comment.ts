@@ -1,8 +1,9 @@
+import { PostLike } from '.prisma/client';
 import { Exclude, Expose } from 'class-transformer';
 import { IsOptional } from 'class-validator';
 
 @Exclude()
-class ActionCommentDto {
+class FetchActionCommentDto {
   @Expose()
   @IsOptional()
   readonly likes: number;
@@ -10,6 +11,9 @@ class ActionCommentDto {
   @Expose()
   @IsOptional()
   readonly dislikes: number;
+
+  @Expose()
+  readonly likedBy: PostLike[];
 }
 
-export { ActionCommentDto };
+export { FetchActionCommentDto };

@@ -11,24 +11,57 @@ import {
   giveActionToPost,
   updatePost,
 } from '../controllers/post.controller';
-import { protect } from '../middleware/auth.middleware';
-import { verifyAuthorization } from '../middleware/post.middleware';
-import { commentRouter, commentPostRouter } from './comment.route';
+import {
+  verifyAction,
+  verifyAuthorization,
+  verifyPublished,
+} from '../middleware/post.middleware';
+import { commentRouter, commentAccountRouter } from './comment.route';
+import { reportAccountRouter } from './report.route';
 
 const postRouter: Router = Router({ mergeParams: true });
 const postAccountRouter: Router = Router({ mergeParams: true });
+const postMeRouter: Router = Router({ mergeParams: true });
 
 postRouter
   .use('/:postId/comments', commentRouter)
   .get('/', asyncHandler(getPostList))
-  .get('/:postId', asyncHandler(getAPost))
-  .get('/:postId/:action', asyncHandler(getActionsOfPost))
-  .patch('/:postId/:action', protect, asyncHandler(giveActionToPost));
+  .get('/:postId', asyncHandler(verifyPublished), asyncHandler(getAPost))
+  .get(
+    '/:postId/:action',
+    asyncHandler(verifyAction),
+    asyncHandler(verifyPublished),
+    asyncHandler(getActionsOfPost),
+  );
 
 postAccountRouter
+  .use('/:postId/comments', commentAccountRouter)
+  .use('/:postId/report', reportAccountRouter)
+  .get('/', asyncHandler(getPostList))
+  .get('/:postId', asyncHandler(verifyPublished), asyncHandler(getAPost))
+  .delete(
+    '/:postId',
+    asyncHandler(verifyAuthorization),
+    asyncHandler(deletePost),
+  )
+  .get(
+    '/:postId/:action',
+    asyncHandler(verifyAction),
+    asyncHandler(verifyPublished),
+    asyncHandler(getActionsOfPost),
+  )
+  .patch(
+    '/:postId/:action',
+    asyncHandler(verifyAction),
+    asyncHandler(verifyPublished),
+    asyncHandler(giveActionToPost),
+  );
+
+postMeRouter
+  .use('/:postId/comments', commentRouter)
   .get('/', asyncHandler(getOwnPosts))
   .get('/:postId', asyncHandler(getMyPost))
-  .get('/:postId/:action', asyncHandler(getActionsOfPost))
+
   .post('/', asyncHandler(createPost))
   .patch('/:postId', asyncHandler(updatePost))
   .delete(
@@ -36,7 +69,15 @@ postAccountRouter
     asyncHandler(verifyAuthorization),
     asyncHandler(deletePost),
   )
-  .patch('/:postId/:action', asyncHandler(giveActionToPost))
-  .use('/:postId/comments', commentPostRouter);
+  .get(
+    '/:postId/:action',
+    asyncHandler(verifyAction),
+    asyncHandler(getActionsOfPost),
+  )
+  .patch(
+    '/:postId/:action',
+    asyncHandler(verifyAction),
+    asyncHandler(giveActionToPost),
+  );
 
-export { postRouter, postAccountRouter };
+export { postRouter, postMeRouter, postAccountRouter };

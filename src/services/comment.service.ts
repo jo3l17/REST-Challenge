@@ -2,7 +2,7 @@ import { Actions, Comment, Prisma, PrismaClient } from '.prisma/client';
 import { plainToClass } from 'class-transformer';
 import createHttpError from 'http-errors';
 import { CreateCommentDto } from '../models/comments/request/create.comment';
-import { ActionCommentDto } from '../models/comments/response/actions.comment';
+import { FetchActionCommentDto } from '../models/comments/response/fetch.action.comment';
 
 const prisma = new PrismaClient();
 
@@ -38,31 +38,33 @@ class CommentService {
     });
   };
 
+  static getDeterminedComment = async (commentId: number): Promise<Comment> => {
+    return await prisma.comment.findFirst({
+      where: {
+        id: {
+          equals: commentId,
+        },
+      },
+      rejectOnNotFound: true,
+    });
+  };
+
   static update = async (
     commentId: number,
     body: CreateCommentDto,
   ): Promise<Comment> => {
-    try {
-      const commentUpdated = await prisma.comment.update({
-        where: {
-          id: commentId,
-        },
-        data: {
-          content: body.content,
-          published: body.published,
-        },
-      });
+    const comment = await this.getMyComment(commentId);
+    const commentUpdated = await prisma.comment.update({
+      where: {
+        id: comment.id,
+      },
+      data: {
+        content: body.content,
+        published: body.published,
+      },
+    });
 
-      return commentUpdated;
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        if ((error.code = 'P2025')) {
-          throw createHttpError(404, 'Comment to update not found');
-        }
-      }
-
-      throw error;
-    }
+    return commentUpdated;
   };
 
   static getMyComment = async (commentId: number): Promise<Comment> => {
@@ -72,33 +74,21 @@ class CommentService {
           equals: commentId,
         },
       },
+      rejectOnNotFound: true,
     });
-
-    if (!comment) {
-      throw createHttpError(404, 'Comment not found');
-    }
 
     return comment;
   };
 
   static delete = async (commentId: number): Promise<Comment> => {
-    try {
-      const commentDeleted = await prisma.comment.delete({
-        where: {
-          id: commentId,
-        },
-      });
+    const comment = await this.getMyComment(commentId);
+    const commentDeleted = await prisma.comment.delete({
+      where: {
+        id: comment.id,
+      },
+    });
 
-      return commentDeleted;
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        if ((error.code = 'P2025')) {
-          throw createHttpError(404, 'Post to update not found');
-        }
-      }
-
-      throw error;
-    }
+    return commentDeleted;
   };
 
   static getPublicComments = async (postId: number): Promise<Comment[]> => {
@@ -115,24 +105,27 @@ class CommentService {
   static recountAction = async (
     commentId: number,
     actionType: string,
-  ): Promise<ActionCommentDto> => {
+  ): Promise<FetchActionCommentDto> => {
     const action = await prisma.comment.findUnique({
       where: {
         id: commentId,
       },
       select: {
         [actionType]: true,
+        likedBy: {
+          select: {
+            accountId: true,
+            type: true,
+          },
+          where: {
+            commentId: commentId,
+          },
+        },
       },
+      rejectOnNotFound: true,
     });
 
-    if (!action) {
-      throw createHttpError(
-        404,
-        `Comment not found or ${[actionType]} not supported`,
-      );
-    }
-
-    return plainToClass(ActionCommentDto, action);
+    return plainToClass(FetchActionCommentDto, action);
   };
 
   static addAction = async (
@@ -140,9 +133,7 @@ class CommentService {
     commentId: number,
     action: string,
   ): Promise<Comment> => {
-    if (action !== 'likes' && action !== 'dislikes') {
-      throw createHttpError(422, `${action} not supported`);
-    }
+    await this.getDeterminedComment(commentId);
 
     const actionByAccount = await prisma.commentLike.findFirst({
       select: {
@@ -167,7 +158,7 @@ class CommentService {
     const newAction = action + 's';
 
     if (actionByAccount) {
-      const prevAction = actionByAccount?.type + 's';
+      const prevAction = actionByAccount.type + 's';
 
       if (prevAction !== newAction) {
         await this.deleteAction(commentId, actionByAccount.id, prevAction);
@@ -210,10 +201,6 @@ class CommentService {
       },
     });
 
-    if (!comment) {
-      throw createHttpError(404, 'comment not found');
-    }
-
     return comment;
   };
 
@@ -242,5 +229,4 @@ class CommentService {
     return comment;
   };
 }
-
 export { CommentService };

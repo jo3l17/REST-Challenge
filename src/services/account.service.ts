@@ -1,10 +1,9 @@
 import { Account, PrismaClient } from '.prisma/client';
 import createHttpError from 'http-errors';
 import {
-  accountData,
-  patchAccountModel,
-  resAccountModel,
+  accountData
 } from '../models/account.model';
+import { UpdateAccountDto } from '../models/account/request/update-account.dto';
 import { AccountDto } from '../models/account/response/account.dto';
 
 const prisma = new PrismaClient();
@@ -22,28 +21,13 @@ class AccountService {
     return account;
   };
 
-  static findOne = async (userId: number): Promise<resAccountModel | null> => {
+  static findByUserId = async (userId: number | undefined): Promise<AccountDto | null> => {
     const account = await prisma.account.findUnique({
       ...accountData,
       where: {
         userId,
       },
     });
-
-    return account;
-  };
-
-  static findByUserId = async (userId: number): Promise<resAccountModel> => {
-    const account = await prisma.account.findUnique({
-      ...accountData,
-      where: {
-        userId,
-      },
-    });
-
-    if (!account) {
-      throw createHttpError(404, 'no account found');
-    }
 
     return account;
   };
@@ -63,18 +47,16 @@ class AccountService {
     return account;
   };
 
-  static update = async (id: number, data: patchAccountModel): Promise<AccountDto> => {
+  static update = async (id: number, data: UpdateAccountDto): Promise<AccountDto> => {
+    const account = await this.findById(id);
+
     const updatedAccount = await prisma.account.update({
       ...accountData,
       where: {
-        id,
+        id:account.id,
       },
       data,
     });
-
-    if (!updatedAccount) {
-      throw createHttpError(404, 'no account found');
-    }
 
     return updatedAccount;
   };
