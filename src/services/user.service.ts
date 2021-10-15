@@ -4,7 +4,7 @@ import { userPersonalData } from '../models/user.model';
 import { CreateUserDto } from '../models/users/request/create-user.dto';
 import { UserMiddlewareDto } from '../models/users/response/user-middleware.dto';
 import { UserDto } from '../models/users/response/user.dto';
-import { createEmail, HOST, PORT, sgMail } from '../utils/sendgrid.util';
+import { createEmail, HOST, sgMail } from '../utils/sendgrid.util';
 import accountService from './account.service';
 import AuthService from './auth.service';
 import authService from './auth.service';
@@ -125,7 +125,7 @@ class UserService {
       temporalEmail,
       `Email change`,
       `Hello ${user.name} use patch to this url to verify your new email`,
-      `http://${HOST}${PORT ? `:${PORT}` : ''}/users/email/${token}`,
+      `http://${HOST}/users/email/${token}`,
       token,
     );
     await sgMail.send(msg);

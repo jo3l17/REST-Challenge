@@ -3,9 +3,7 @@ import sgMail, { MailDataRequired } from '@sendgrid/mail';
 import dotenv from 'dotenv';
 dotenv.config();
 
-const HOST = process.env.HOST || 'localhost';
-
-const PORT = process.env.PORT;
+const HOST = process.env.HOST || `localhost:${process.env.PORT || 3000}`;
 
 if (process.env.SENDGRID_API_KEY) {
   sgMail.setApiKey(process.env.SENDGRID_API_KEY);
@@ -37,9 +35,10 @@ const createReport = (to: string[], report: Report): MailDataRequired => {
     html: `<h1>${report.title}</h1>
     <p>${report.content}</p>
     <p>report Id: ${report.id}</p>
-    <p>created at: ${report.createdAt}</p>`,
+    <p>created at: ${report.createdAt}</p>
+    <p>see all reports at:<a href="${HOST}/api/v1/reports">Reports</a> with a bearer token in headers</p>`,
   };
   return msg;
 };
 
-export { sgMail, createEmail, createReport, HOST, PORT };
+export { sgMail, createEmail, createReport, HOST };

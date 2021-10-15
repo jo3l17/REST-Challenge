@@ -12,7 +12,7 @@ import { Request } from 'express';
 import userService from './user.service';
 import createHttpError from 'http-errors';
 import accountService from './account.service';
-import { createEmail, HOST, PORT, sgMail } from '../utils/sendgrid.util';
+import { createEmail, HOST, sgMail } from '../utils/sendgrid.util';
 import { CreateUserDto } from '../models/users/request/create-user.dto';
 import { TokenResponseDto } from '../models/token/response/token-response.dto';
 import { LoginUserDto } from '../models/users/request/login-user.dto';
@@ -92,7 +92,7 @@ class AuthService {
       user.email,
       `token signup`,
       `Hello ${user.name} use patch to this url to verify your account`,
-      `http://${HOST}${PORT ? `:${PORT}` : ''}/users/${newToken.token}/verify`,
+      `http://${HOST}/users/${newToken.token}/verify`,
       newToken.token,
     );
     await sgMail.send(msg);
@@ -146,7 +146,7 @@ class AuthService {
       data.email,
       `token signup`,
       `Hello ${data.name} use patch to this url to verify your account`,
-      `http://${HOST}${PORT ? `:${PORT}` : ''}/users/${token.token}/verify`,
+      `http://${HOST}/users/${token.token}/verify`,
       token.token,
     );
     await sgMail.send(msg);
@@ -186,7 +186,7 @@ class AuthService {
       user.email,
       `Password Recover`,
       `Hello ${user.name} use patch to this url to change you password with your new password`,
-      `http://${HOST}${PORT ? `:${PORT}` : ''}/users/passwords/${token}`,
+      `http://${HOST}/users/passwords/${token}`,
       token,
     );
     await sgMail.send(msg);
