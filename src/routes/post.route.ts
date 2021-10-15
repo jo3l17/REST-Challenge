@@ -26,7 +26,7 @@ postRouter
   .use('/:postId/comments', commentRouter)
   .use('/:postId/report', reportRouter)
   .get('/', asyncHandler(getPostList))
-  .get('/:postId', asyncHandler(getAPost))
+  .get('/:postId', asyncHandler(verifyPublished), asyncHandler(getAPost))
   .get(
     '/:postId/:action',
     asyncHandler(verifyAction),

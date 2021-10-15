@@ -16,8 +16,6 @@ jest.mock('http-errors', () => {
 
 jest.mock('../../utils/sendgrid.util');
 
-const prisma = new PrismaClient();
-
 let user: User;
 let authenticatedUser: User;
 

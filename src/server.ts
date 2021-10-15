@@ -9,8 +9,12 @@ import { userRoute } from './routes/user.route';
 import asyncHandler from 'express-async-handler';
 import { errorHandler } from './utils/error.util';
 import { postReportRouter } from './routes/report.route';
+import createHttpError from 'http-errors';
 
-const prisma = new PrismaClient();
+export const prisma = new PrismaClient({
+  rejectOnNotFound: (error) => new createHttpError.NotFound(error.message),
+});
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || 'localhost';
