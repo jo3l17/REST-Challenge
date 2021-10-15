@@ -1,12 +1,11 @@
-import { Account, Comment, Post, Report, User } from '.prisma/client';
+import { Account, Comment, Post, PrismaClient, Report, User } from '.prisma/client';
 import { plainToClass } from 'class-transformer';
 import { CreateReportDto } from '../../models/reports/request/create.report.dto';
-import { prisma } from '../../server';
-import { createReport, sgMail } from '../../utils/sendgrid.util';
-import AuthService from '../auth.service';
 import { ReportService } from '../report.service';
 
 jest.mock('../../utils/sendgrid.util');
+
+const prisma = new PrismaClient();
 
 let user: User;
 let account: Account;
