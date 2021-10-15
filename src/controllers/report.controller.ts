@@ -1,14 +1,15 @@
 import { plainToClass } from 'class-transformer';
 import { Request, Response } from 'express';
-import { CreatePostReportDto } from '../models/reports/request/create.report.dto';
+import { CreateReportDto } from '../models/reports/request/create.report.dto';
 import { FetchReportsDto } from '../models/reports/response/fetch.reports.dto';
-import { PostReportDto } from '../models/reports/response/report.dto';
+import { ReportDto } from '../models/reports/response/report.dto';
 import { ReportService } from '../services/report.service';
 
 const createReport = async (req: Request, res: Response): Promise<void> => {
-  const dto = plainToClass(CreatePostReportDto, req.body);
+  const dto = plainToClass(CreateReportDto, req.body);
   dto.isValid();
 
+  console.log(dto);
   const report = await ReportService.createReport(
     req.accountId,
     res.locals.type,
@@ -17,7 +18,7 @@ const createReport = async (req: Request, res: Response): Promise<void> => {
   );
 
   console.log(report);
-  res.status(200).json(plainToClass(PostReportDto, report));
+  res.status(200).json(plainToClass(ReportDto, report));
 };
 
 const deleteReport = async (req: Request, res: Response): Promise<void> => {

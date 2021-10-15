@@ -3,7 +3,7 @@ import { Exclude, Expose, Transform } from 'class-transformer';
 import { IsOptional } from 'class-validator';
 
 @Exclude()
-class PostReportDto {
+class ReportDto {
   @Expose()
   @IsOptional()
   @Transform(({ value }) => (value === null ? undefined : value))
@@ -31,4 +31,4 @@ class PostReportDto {
   readonly createdAt: Date;
 }
 
-export { PostReportDto };
+export { ReportDto };

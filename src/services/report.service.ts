@@ -1,9 +1,10 @@
 import { PrismaClient, Report, ReportType } from '.prisma/client';
 import { plainToClass } from 'class-transformer';
 import createHttpError from 'http-errors';
-import { CreatePostReportDto } from '../models/reports/request/create.report.dto';
+import { CreateReportDto } from '../models/reports/request/create.report.dto';
 import { FetchReportsDto } from '../models/reports/response/fetch.reports.dto';
 import { createEmail, createReport, sgMail } from '../utils/sendgrid.util';
+import { PostService } from './post.service';
 
 const prisma = new PrismaClient();
 
@@ -12,49 +13,40 @@ class ReportService {
     accountId: number,
     type: ReportType,
     resourceId: number,
-    body: CreatePostReportDto,
+    body: CreateReportDto,
   ): Promise<Report> => {
-    console.log(type == ReportType.post);
-
-    try {
-      const report = await prisma.report.create({
-        data: {
-          title: body.title,
-          content: body.content,
-          type: type,
-          account: {
-            connect: {
-              id: accountId,
-            },
-          },
-          [type]: {
-            connect: {
-              id: resourceId,
-            },
+    const report = await prisma.report.create({
+      data: {
+        title: body.title,
+        content: body.content,
+        type: type,
+        account: {
+          connect: {
+            id: accountId,
           },
         },
-      });
+        [type]: {
+          connect: {
+            id: resourceId,
+          },
+        },
+      },
+    });
 
-      console.log(report);
-      this.sendReports(report);
-      return report;
-    } catch (error) {
-      throw error;
-    }
+    await this.sendReports(report);
+    return report;
   };
 
-  private static sendReports = async (report: Report) => {
+  private static sendReports = async (report: Report): Promise<void> => {
     const moderators = await prisma.user.findMany({
       select: { email: true },
-      where: { role: 'moderator' }
-    })
-    console.log(moderators);
-    const emailMod = moderators.map(moderator => moderator.email)
-    console.log(emailMod);
-    const msg = createReport(emailMod, report)
-    
-    await sgMail.send(msg)
-  }
+      where: { role: 'moderator' },
+    });
+    const emailMod = moderators.map((moderator) => moderator.email);
+    const msg = createReport(emailMod, report);
+
+    await sgMail.send(msg);
+  };
 
   static deleteReport = async (reportId: number): Promise<Report> => {
     return await prisma.report.delete({
@@ -74,6 +66,7 @@ class ReportService {
           select: {
             id: true,
             title: true,
+            accountId: true,
           },
         },
         comment: {
@@ -87,11 +80,8 @@ class ReportService {
       where: {
         id: reportId,
       },
+      rejectOnNotFound: true,
     });
-
-    if (!report) {
-      throw createHttpError(404, 'Report not found');
-    }
 
     return plainToClass(FetchReportsDto, report);
   };
@@ -106,6 +96,7 @@ class ReportService {
           select: {
             id: true,
             title: true,
+            accountId: true,
           },
         },
         comment: {

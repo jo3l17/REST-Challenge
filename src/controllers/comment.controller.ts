@@ -26,12 +26,21 @@ const getOwnComments = async (req: Request, res: Response): Promise<void> => {
   res.status(200).json(plainToClass(OwnCommentDto, comments));
 };
 
-const getMyPost = async (req: Request, res: Response): Promise<void> => {
+const getMyComment = async (req: Request, res: Response): Promise<void> => {
   const comment = await CommentService.getMyComment(
     parseInt(req.params.commentId),
   );
 
   res.status(200).json(plainToClass(OwnCommentDto, comment));
+};
+
+const getACommment = async (req: Request, res: Response): Promise<void> => {
+  console.log(req.params.commentId);
+  const comment = await CommentService.getDeterminedComment(
+    parseInt(req.params.commentId),
+  );
+
+  res.status(200).json(plainToClass(GlobalCommentDto, comment));
 };
 
 const getListComments = async (req: Request, res: Response): Promise<void> => {
@@ -80,7 +89,7 @@ const giveActionToComment = async (
 ): Promise<void> => {
   const comment = await CommentService.addAction(
     req.accountId,
-    parseInt(req.params.postId),
+    parseInt(req.params.commentId),
     req.params.action,
   );
 
@@ -92,7 +101,8 @@ export {
   updateComment,
   deleteComment,
   getOwnComments,
-  getMyPost,
+  getMyComment,
+  getACommment,
   getListComments,
   getActionOfComment,
   giveActionToComment,

@@ -16,17 +16,34 @@ import {
   verifyAuthorization,
   verifyPublished,
 } from '../middleware/post.middleware';
-import { commentRouter, commentPostRouter } from './comment.route';
-import { reportRouter } from './report.route';
+import { commentRouter, commentAccountRouter } from './comment.route';
+import { reportAccountRouter } from './report.route';
 
 const postRouter: Router = Router({ mergeParams: true });
 const postAccountRouter: Router = Router({ mergeParams: true });
+const postMeRouter: Router = Router({ mergeParams: true });
 
 postRouter
   .use('/:postId/comments', commentRouter)
-  .use('/:postId/report', reportRouter)
   .get('/', asyncHandler(getPostList))
   .get('/:postId', asyncHandler(verifyPublished), asyncHandler(getAPost))
+  .get(
+    '/:postId/:action',
+    asyncHandler(verifyAction),
+    asyncHandler(verifyPublished),
+    asyncHandler(getActionsOfPost),
+  );
+
+postAccountRouter
+  .use('/:postId/comments', commentAccountRouter)
+  .use('/:postId/report', reportAccountRouter)
+  .get('/', asyncHandler(getPostList))
+  .get('/:postId', asyncHandler(verifyPublished), asyncHandler(getAPost))
+  .delete(
+    '/:postId',
+    asyncHandler(verifyAuthorization),
+    asyncHandler(deletePost),
+  )
   .get(
     '/:postId/:action',
     asyncHandler(verifyAction),
@@ -40,8 +57,8 @@ postRouter
     asyncHandler(giveActionToPost),
   );
 
-postAccountRouter
-  .use('/:postId/comments', commentPostRouter)
+postMeRouter
+  .use('/:postId/comments', commentRouter)
   .get('/', asyncHandler(getOwnPosts))
   .get('/:postId', asyncHandler(getMyPost))
 
@@ -63,4 +80,4 @@ postAccountRouter
     asyncHandler(giveActionToPost),
   );
 
-export { postRouter, postAccountRouter };
+export { postRouter, postMeRouter, postAccountRouter };

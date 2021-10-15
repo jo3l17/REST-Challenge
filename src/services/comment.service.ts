@@ -38,31 +38,33 @@ class CommentService {
     });
   };
 
+  static getDeterminedComment = async (commentId: number): Promise<Comment> => {
+    return await prisma.comment.findFirst({
+      where: {
+        id: {
+          equals: commentId,
+        },
+      },
+      rejectOnNotFound: true,
+    });
+  };
+
   static update = async (
     commentId: number,
     body: CreateCommentDto,
   ): Promise<Comment> => {
-    try {
-      const commentUpdated = await prisma.comment.update({
-        where: {
-          id: commentId,
-        },
-        data: {
-          content: body.content,
-          published: body.published,
-        },
-      });
+    const comment = await this.getMyComment(commentId);
+    const commentUpdated = await prisma.comment.update({
+      where: {
+        id: comment.id,
+      },
+      data: {
+        content: body.content,
+        published: body.published,
+      },
+    });
 
-      return commentUpdated;
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        if ((error.code = 'P2025')) {
-          throw createHttpError(404, 'Comment to update not found');
-        }
-      }
-
-      throw createHttpError(500, 'Server error');
-    }
+    return commentUpdated;
   };
 
   static getMyComment = async (commentId: number): Promise<Comment> => {
@@ -72,33 +74,21 @@ class CommentService {
           equals: commentId,
         },
       },
+      rejectOnNotFound: true,
     });
-
-    if (!comment) {
-      throw createHttpError(404, 'Comment not found');
-    }
 
     return comment;
   };
 
   static delete = async (commentId: number): Promise<Comment> => {
-    try {
-      const commentDeleted = await prisma.comment.delete({
-        where: {
-          id: commentId,
-        },
-      });
+    const comment = await this.getMyComment(commentId);
+    const commentDeleted = await prisma.comment.delete({
+      where: {
+        id: comment.id,
+      },
+    });
 
-      return commentDeleted;
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        if ((error.code = 'P2025')) {
-          throw createHttpError(404, 'Comment to delete not found');
-        }
-      }
-
-      throw createHttpError(500, 'Server error');
-    }
+    return commentDeleted;
   };
 
   static getPublicComments = async (postId: number): Promise<Comment[]> => {
@@ -125,17 +115,15 @@ class CommentService {
         likedBy: {
           select: {
             accountId: true,
+            type: true,
           },
           where: {
             commentId: commentId,
           },
         },
       },
+      rejectOnNotFound: true,
     });
-
-    if (!action) {
-      throw createHttpError(404, 'Post not found');
-    }
 
     return plainToClass(FetchActionCommentDto, action);
   };
@@ -145,7 +133,7 @@ class CommentService {
     commentId: number,
     action: string,
   ): Promise<Comment> => {
-    this.getDeterminedComment(commentId, accountId);
+    await this.getDeterminedComment(commentId);
 
     const actionByAccount = await prisma.commentLike.findFirst({
       select: {
@@ -170,7 +158,7 @@ class CommentService {
     const newAction = action + 's';
 
     if (actionByAccount) {
-      const prevAction = actionByAccount?.type + 's';
+      const prevAction = actionByAccount.type + 's';
 
       if (prevAction !== newAction) {
         await this.deleteAction(commentId, actionByAccount.id, prevAction);
@@ -213,10 +201,6 @@ class CommentService {
       },
     });
 
-    if (!comment) {
-      throw createHttpError(404, 'comment not found');
-    }
-
     return comment;
   };
 
@@ -243,32 +227,6 @@ class CommentService {
     });
 
     return comment;
-  };
-
-  private static getDeterminedComment = async (
-    commentId: number,
-    accountId: number,
-  ): Promise<Comment> => {
-    const post = await prisma.comment.findFirst({
-      where: {
-        AND: [
-          {
-            id: {
-              equals: commentId,
-            },
-            accountId: {
-              equals: accountId,
-            },
-          },
-        ],
-      },
-    });
-
-    if (!post) {
-      throw createHttpError(404, 'Comment not found');
-    }
-
-    return post;
   };
 }
 export { CommentService };

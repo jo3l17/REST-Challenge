@@ -27,7 +27,6 @@ class PostService {
   };
 
   static getPublicPosts = async (accountId?: number): Promise<Post[]> => {
-    console.log(accountId);
     return await prisma.post.findMany({
       where: {
         AND: [
@@ -35,7 +34,7 @@ class PostService {
             published: {
               equals: true,
             },
-            accountId: accountId,
+            accountId: accountId ? accountId : undefined,
           },
         ],
       },
@@ -50,24 +49,14 @@ class PostService {
     });
   };
 
-  static getDeterminedPost = async (
-    postId: number,
-    accountId: number,
-  ): Promise<Post> => {
+  static getDeterminedPost = async (postId: number): Promise<Post> => {
     const post = await prisma.post.findFirst({
       where: {
-        AND: [
-          {
-            id: {
-              equals: postId,
-            },
-            accountId: {
-              equals: accountId,
-            },
-          },
-        ],
+        id: {
+          equals: postId,
+        },
       },
-      rejectOnNotFound: true
+      rejectOnNotFound: true,
     });
 
     return post;
@@ -80,11 +69,8 @@ class PostService {
           equals: postId,
         },
       },
+      rejectOnNotFound: true,
     });
-
-    if (!post) {
-      throw createHttpError(404, 'Post not found');
-    }
 
     return post;
   };
@@ -119,8 +105,6 @@ class PostService {
     postId: number,
     actionType: string,
   ): Promise<FetchActionPostDto> => {
-    console.log(`${postId} - ${actionType}`);
-
     const action = await prisma.post.findUnique({
       where: {
         id: postId,
@@ -130,13 +114,14 @@ class PostService {
         likedBy: {
           select: {
             accountId: true,
+            type: true,
           },
           where: {
             postId: postId,
           },
         },
       },
-      rejectOnNotFound: true
+      rejectOnNotFound: true,
     });
 
     return plainToClass(FetchActionPostDto, action);
@@ -147,7 +132,7 @@ class PostService {
     postId: number,
     action: string,
   ): Promise<Post> => {
-    this.getDeterminedPost(postId, accountId);
+    this.getDeterminedPost(postId);
 
     const actionByAccount = await prisma.postLike.findFirst({
       select: {

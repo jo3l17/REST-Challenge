@@ -3,7 +3,7 @@ import { IsNotEmpty, IsString } from 'class-validator';
 import { BaseDto } from '../../base.dto';
 
 @Exclude()
-class CreatePostReportDto extends BaseDto {
+class CreateReportDto extends BaseDto {
   @Expose()
   @IsNotEmpty()
   @IsString()
@@ -15,4 +15,4 @@ class CreatePostReportDto extends BaseDto {
   readonly content: string;
 }
 
-export { CreatePostReportDto };
+export { CreateReportDto };

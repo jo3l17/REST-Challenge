@@ -3,6 +3,9 @@ import { Exclude, Expose, Transform } from 'class-transformer';
 
 @Exclude()
 class OwnPostDto {
+  @Expose({ name: 'id' })
+  readonly postId: number;
+
   @Expose()
   readonly title: string;
 

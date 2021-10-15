@@ -8,14 +8,18 @@ import {
 } from '../controllers/report.controller';
 import { resourceType } from '../middleware/report.middleware';
 
-const postReportRouter: Router = Router();
-const reportRouter: Router = Router({ mergeParams: true });
+const reportRouter: Router = Router();
+const reportAccountRouter: Router = Router({ mergeParams: true });
 
-postReportRouter
+reportRouter
   .get('/', asyncHandler(getReportList))
   .get('/:reportId', asyncHandler(getReport))
   .delete('/:reportId', asyncHandler(deleteReport));
 
-reportRouter.post('/', resourceType, createReport);
+reportAccountRouter.post(
+  '/',
+  asyncHandler(resourceType),
+  asyncHandler(createReport),
+);
 
-export { postReportRouter, reportRouter };
+export { reportRouter, reportAccountRouter };
