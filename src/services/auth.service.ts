@@ -7,7 +7,7 @@ import {
   sessionType,
 } from '../utils/jwt.util';
 import jwt, { TokenExpiredError } from 'jsonwebtoken';
-import { PrismaClient } from '.prisma/client';
+import { Prisma, PrismaClient, Token } from '.prisma/client';
 import { Request } from 'express';
 import userService from './user.service';
 import createHttpError from 'http-errors';
@@ -96,20 +96,24 @@ class AuthService {
     await sgMail.send(msg);
   };
 
-  static deleteToken = async (id: number): Promise<void> => {
-    await prisma.token.delete({
+  static deleteToken = async (id: number): Promise<Token> => {
+    const deletedToken = await prisma.token.delete({
       where: {
         id,
       },
     });
+
+    return deletedToken;
   };
 
-  static deleteTokenByUserId = async (userId: number): Promise<void> => {
-    await prisma.token.deleteMany({
+  static deleteTokenByUserId = async (userId: number): Promise<Prisma.BatchPayload> => {
+    const deletedTokens = await prisma.token.deleteMany({
       where: {
         userId,
       },
     });
+
+    return deletedTokens;
   };
 
   static uniqueEmail = async (email: string): Promise<boolean> => {
@@ -153,12 +157,14 @@ class AuthService {
     }
     const tokenData: jwtData = { id: user.id, role: user.role, type: 'session' };
     const account = await accountService.findByUserId(user.id);
+    let token
     if (account) {
-      tokenData.accountId = account.id
+      tokenData.accountId = account.id;
     }
-    const token = await this.createToken(tokenData);
 
+    token = await this.createToken(tokenData);
     return token;
+
   };
 
   static recoverPassword = async (user: UserDto): Promise<string> => {
@@ -185,7 +191,12 @@ class AuthService {
   };
 
   static findHeaderToken = async (req: Request): Promise<TokenModelDto> => {
-    const headerToken = req.headers.authorization?.split('Bearer ')[1].trim();
+    const bearer = req.headers.authorization;
+    if (!bearer || !bearer.startsWith('Bearer ')) {
+      throw createHttpError(401, 'no auth');
+    }
+
+    const headerToken = bearer.split('Bearer ')[1].trim();
     const token = await prisma.token.findFirst({
       select: {
         token: true,

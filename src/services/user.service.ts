@@ -29,11 +29,8 @@ class UserService {
   static findByEmail = async (email: string): Promise<UserDto> => {
     const user = await prisma.user.findUnique({
       where: { email },
+      rejectOnNotFound: true
     });
-
-    if (!user) {
-      throw createHttpError(404, 'no user found');
-    }
 
     if (!user.verifiedAt) {
       throw createHttpError(400, 'email not verified');
@@ -42,26 +39,12 @@ class UserService {
     return user;
   };
 
-  static findAnyByEmail = async (email: string): Promise<UserDto | null> => {
-    const user = await prisma.user.findUnique({
-      select: {
-        ...userPersonalData.select,
-        password: true,
-      },
-      where: { email },
-    });
-
-    return user;
-  };
-
   static findById = async (id: number): Promise<UserMiddlewareDto> => {
     const user = await prisma.user.findUnique({
       ...userPersonalData,
       where: { id },
+      rejectOnNotFound: true
     });
-    if (!user) {
-      throw createHttpError(404, 'no user found');
-    }
     return user;
   };
 
@@ -76,18 +59,16 @@ class UserService {
           },
         ],
       },
+      rejectOnNotFound: true
     });
-    if (!user) {
-      throw createHttpError(404, 'user not verified');
-    }
     return user;
   };
 
   static updateVerification = async (
     id: number,
     role: string,
-  ): Promise<void> => {
-    await prisma.user.update({
+  ): Promise<User> => {
+    const user = await prisma.user.update({
       where: { id },
       data: {
         verifiedAt: new Date(),
@@ -97,27 +78,30 @@ class UserService {
     if (role === 'user') {
       await accountService.create(id);
     }
+    return user;
   };
 
-  static updatePassword = async (id: number, password: string): Promise<void> => {
-    await prisma.user.update({
+  static updatePassword = async (id: number, password: string): Promise<User> => {
+    const user = await prisma.user.update({
       where: { id },
       data: { password },
     });
+    return user;
   };
 
-  static updateEmail = async (id: number): Promise<void> => {
+  static updateEmail = async (id: number): Promise<User> => {
     const user = await this.findVerifiedById(id);
     if (!user.temporalEmail) {
       throw createHttpError(400, "User haven't request an email change");
     }
-    await prisma.user.update({
+    const updatedUser = await prisma.user.update({
       where: { id },
       data: {
         email: user.temporalEmail,
         temporalEmail: null,
       },
     });
+    return updatedUser;
   };
 
   static createTemporalEmail = async (
@@ -125,8 +109,8 @@ class UserService {
     temporalEmail: string,
   ): Promise<UserDto> => {
     const user = await this.findVerifiedById(id);
-    const existingUser = await this.findAnyByEmail(temporalEmail);
-    if (existingUser) {
+    const validEmail = await AuthService.uniqueEmail(temporalEmail);
+    if (!validEmail) {
       throw createHttpError(400, 'email already in use');
     }
     const updatedUser = await prisma.user.update({

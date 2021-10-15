@@ -3,6 +3,7 @@ module.exports = {
   testEnvironment: "node",
   collectCoverageFrom: ["src/services/*.ts"],
   verbose: true,
+  runInBand: true,
   coverageThreshold: {
     'src/index.ts': {
       statements: 80,
