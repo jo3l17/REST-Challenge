@@ -1,4 +1,4 @@
-# BlogAPI - Applaudo Studios
+# Rest-Challenge - MicroBlog
 
 ## Prerrequisites
 
