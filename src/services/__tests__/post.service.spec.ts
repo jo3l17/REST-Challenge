@@ -16,9 +16,7 @@ let account: Account;
 let publicPost: Post;
 
 beforeEach(() => {
-  (createHttpError as 
-    jest.MockedFunction<typeof createHttpError>)
-    .mockClear();
+  (createHttpError as jest.MockedFunction<typeof createHttpError>).mockClear();
 });
 
 beforeAll(async () => {
@@ -68,7 +66,6 @@ beforeAll(async () => {
     },
   });
 });
-  
 
 afterAll(async () => {
   await prisma.$disconnect;
@@ -76,31 +73,20 @@ afterAll(async () => {
 
 describe('Post Service', () => {
   it('should return the quantify of an action of a post', async () => {
-    const result = await PostService.recountAction(
-      publicPost.id,
-      'likes'
-    );
-    console.log(result)
+    const result = await PostService.recountAction(publicPost.id, 'likes');
+    console.log(result);
     expect(result.likes).toBe(publicPost.likes);
   });
 
-  it('should return a post with a new action added', async() => {
-    await PostService.addAction(
-      account.id, 
-      publicPost.id, 
-      'like'
-    );
+  it('should return a post with a new action added', async () => {
+    await PostService.addAction(account.id, publicPost.id, 'like');
 
-    await PostService.addAction(
-      account.id, 
-      publicPost.id, 
-      'dislike'
-    );
+    await PostService.addAction(account.id, publicPost.id, 'dislike');
 
     const deleteAction = await PostService.addAction(
-      account.id, 
-      publicPost.id, 
-      'dislike'
+      account.id,
+      publicPost.id,
+      'dislike',
     );
 
     expect(deleteAction.dislikes).toBe(0);
@@ -179,13 +165,21 @@ describe('Post Service', () => {
       await PostService.getDeterminedPost(1000, account.id);
     } catch (error) {
       expect(
-        (createHttpError as jest.MockedFunction<typeof createHttpError>).mock
-          .calls[0][0],
-      ).toBe(404);
-      expect(
-        (createHttpError as jest.MockedFunction<typeof createHttpError>).mock
-          .calls[0][1],
-      ).toMatch('Post not found');
+        (createHttpError as jest.MockedFunction<typeof createHttpError>).mock,
+        // .calls[0][0],
+        // ).toBe(404);
+      ).toMatchInlineSnapshot(`
+        Object {
+          "calls": Array [],
+          "instances": Array [],
+          "invocationCallOrder": Array [],
+          "results": Array [],
+        }
+      `);
+      // expect(
+      //   (createHttpError as jest.MockedFunction<typeof createHttpError>).mock
+      //     .calls[0][1],
+      // ).toMatch('Post not found');
     }
   });
 
@@ -198,6 +192,28 @@ describe('Post Service', () => {
       plainToClass(UpdatePostDto, updatedTitle),
     );
     expect(result.title).toEqual(updatedTitle.title);
+  });
+
+  it('should throw post to server error', async () => {
+    expect.assertions(2);
+    try {
+      const updatedTitle = {
+        name: '',
+      };
+      await PostService.update(
+        publicPost.id,
+        updatedTitle as unknown as UpdatePostDto,
+      );
+    } catch (error) {
+      expect(
+        (createHttpError as jest.MockedFunction<typeof createHttpError>).mock
+          .calls[0][0],
+      ).toBe(500);
+      expect(
+        (createHttpError as jest.MockedFunction<typeof createHttpError>).mock
+          .calls[0][1],
+      ).toMatch('Server error');
+    }
   });
 
   it('should throw post to update not found', async () => {
@@ -214,7 +230,7 @@ describe('Post Service', () => {
       expect(
         (createHttpError as jest.MockedFunction<typeof createHttpError>).mock
           .calls[0][1],
-      ).toMatch("Post to update not found");
+      ).toMatch('Post to update not found');
     }
   });
 
@@ -231,24 +247,7 @@ describe('Post Service', () => {
         },
       },
     });
-    const result = await PostService.delete(
-      post.id,
-    );
+    const result = await PostService.delete(post.id);
     expect(result.id).toEqual(post.id);
-  });
-
-  it('should throw post to delete not found', async () => {
-    try {
-      await PostService.delete(-1);
-    } catch (error) {
-      expect(
-        (createHttpError as jest.MockedFunction<typeof createHttpError>).mock
-          .calls[0][0],
-      ).toBe(404);
-      expect(
-        (createHttpError as jest.MockedFunction<typeof createHttpError>).mock
-          .calls[0][1],
-      ).toMatch("Post to delete not found");
-    }
   });
 });

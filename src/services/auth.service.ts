@@ -76,7 +76,6 @@ class AuthService {
           await this.sendNewVerification(token);
           throw createHttpError(100, 'token expired, new token sent to email');
         }
-
         throw createHttpError(498, 'token expired');
       }
       throw createHttpError(500, 'token error');
