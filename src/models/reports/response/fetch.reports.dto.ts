@@ -1,4 +1,4 @@
-import { Account, Comment, Post } from '.prisma/client';
+import { Comment, Post } from '.prisma/client';
 import { Exclude, Expose, Transform } from 'class-transformer';
 import { IsOptional } from 'class-validator';
 

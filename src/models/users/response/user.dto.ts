@@ -13,6 +13,9 @@ export class UserDto {
   readonly email: string
 
   @Expose()
+  readonly temporalEmail: string | null
+
+  @Expose()
   readonly role: role
 
   @Expose()

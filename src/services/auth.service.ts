@@ -9,7 +9,6 @@ import {
 import jwt, { TokenExpiredError } from 'jsonwebtoken';
 import { PrismaClient } from '.prisma/client';
 import { Request } from 'express';
-import { tokenData } from '../models/token.model';
 import userService from './user.service';
 import createHttpError from 'http-errors';
 import accountService from './account.service';
@@ -38,7 +37,11 @@ class AuthService {
     const date = new Date();
     date.setHours(date.getHours() + 1);
     const prismaToken = await prisma.token.create({
-      ...tokenData,
+      select: {
+        token: true,
+        expirationDate: true,
+        userId: true,
+      },
       data: {
         token,
         userId: data.id,
@@ -121,12 +124,12 @@ class AuthService {
   }
 
   static signup = async (data: CreateUserDto): Promise<TokenResponseDto> => {
-    await data.isValid();
     const validEmail = await this.uniqueEmail(data.email);
     if (!validEmail) {
       throw createHttpError(400, 'This email is already registered');
     }
     const user = await userService.create(data);
+
     const token = await this.createToken({
       id: user.id,
       role: user.role,
@@ -139,24 +142,18 @@ class AuthService {
       `http://localhost:3000/users/${token.token}/verify`,
       token.token,
     );
-    try {
-      await sgMail.send(msg);
-      return token;
-    } catch (e) {
-      console.log(e);
-      throw createHttpError(500, 'there was an error');
-    }
+    await sgMail.send(msg);
+    return token;
   };
 
   static login = async (data: LoginUserDto): Promise<TokenResponseDto> => {
-    await data.isValid()
     const user = await userService.findByEmail(data.email);
     const passwordExists = await this.validatePassword(data.password, user.password);
     if (!passwordExists) {
       throw createHttpError(400, 'The email or password are wrong');
     }
     const tokenData: jwtData = { id: user.id, role: user.role, type: 'session' };
-    const account = await accountService.findOne(user.id);
+    const account = await accountService.findByUserId(user.id);
     if (account) {
       tokenData.accountId = account.id
     }
@@ -192,8 +189,10 @@ class AuthService {
     const headerToken = req.headers.authorization?.split('Bearer ')[1].trim();
     const token = await prisma.token.findFirst({
       select: {
-        ...tokenData.select,
-        id: true,
+        token: true,
+        expirationDate: true,
+        userId: true,
+        id: true
       },
       where: {
         token: headerToken,
@@ -210,8 +209,10 @@ class AuthService {
   static findToken = async (token: string): Promise<TokenModelDto> => {
     const tokenRes = await prisma.token.findFirst({
       select: {
-        ...tokenData.select,
         id: true,
+        token: true,
+        expirationDate: true,
+        userId: true,
       },
       where: {
         token,
@@ -245,7 +246,11 @@ class AuthService {
     const date = new Date();
     date.setHours(date.getHours() + 1);
     const updatedToken = await prisma.token.update({
-      ...tokenData,
+      select: {
+        token: true,
+        expirationDate: true,
+        userId: true,
+      },
       where: {
         id,
       },

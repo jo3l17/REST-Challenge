@@ -7,6 +7,7 @@ const userPersonalData = Prisma.validator<Prisma.UserArgs>()({
     role: true,
     name: true,
     verifiedAt: true,
+    password: true,
     temporalEmail: true,
   },
 });
