@@ -7,12 +7,12 @@ import {
   sessionType,
 } from '../utils/jwt.util';
 import jwt, { TokenExpiredError } from 'jsonwebtoken';
-import { PrismaClient } from '.prisma/client';
+import { Prisma, PrismaClient } from '.prisma/client';
 import { Request } from 'express';
 import userService from './user.service';
 import createHttpError from 'http-errors';
 import accountService from './account.service';
-import { createEmail, sgMail } from '../utils/sendgrid.util';
+import { createEmail, HOST, PORT, sgMail } from '../utils/sendgrid.util';
 import { CreateUserDto } from '../models/users/request/create-user.dto';
 import { TokenResponseDto } from '../models/token/response/token-response.dto';
 import { LoginUserDto } from '../models/users/request/login-user.dto';
@@ -90,26 +90,30 @@ class AuthService {
       user.email,
       `token signup`,
       `Hello ${user.name} use patch to this url to verify your account`,
-      `http://localhost:3000/users/${newToken.token}/verify`,
+      `http://${HOST}${PORT ? `:${PORT}` : ''}/users/${newToken.token}/verify`,
       newToken.token,
     );
     await sgMail.send(msg);
   };
 
-  static deleteToken = async (id: number): Promise<void> => {
-    await prisma.token.delete({
+  static deleteToken = async (id: number): Promise<TokenModelDto> => {
+    const deletedToken = await prisma.token.delete({
       where: {
         id,
       },
     });
+
+    return deletedToken;
   };
 
-  static deleteTokenByUserId = async (userId: number): Promise<void> => {
-    await prisma.token.deleteMany({
+  static deleteTokenByUserId = async (userId: number): Promise<Prisma.BatchPayload> => {
+    const deletedTokens = await prisma.token.deleteMany({
       where: {
         userId,
       },
     });
+
+    return deletedTokens;
   };
 
   static uniqueEmail = async (email: string): Promise<boolean> => {
@@ -138,7 +142,7 @@ class AuthService {
       data.email,
       `token signup`,
       `Hello ${data.name} use patch to this url to verify your account`,
-      `http://localhost:3000/users/${token.token}/verify`,
+      `http://${HOST}${PORT ? `:${PORT}` : ''}/users/${token.token}/verify`,
       token.token,
     );
     await sgMail.send(msg);
@@ -153,12 +157,14 @@ class AuthService {
     }
     const tokenData: jwtData = { id: user.id, role: user.role, type: 'session' };
     const account = await accountService.findByUserId(user.id);
+    let token
     if (account) {
-      tokenData.accountId = account.id
+      tokenData.accountId = account.id;
     }
-    const token = await this.createToken(tokenData);
 
+    token = await this.createToken(tokenData);
     return token;
+
   };
 
   static recoverPassword = async (user: UserDto): Promise<string> => {
@@ -171,7 +177,7 @@ class AuthService {
       user.email,
       `Password Recover`,
       `Hello ${user.name} use patch to this url to change you password with your new password`,
-      `http://localhost:3000/users/passwords/${token}`,
+      `http://${HOST}${PORT ? `:${PORT}` : ''}/users/passwords/${token}`,
       token,
     );
     await sgMail.send(msg);
@@ -185,7 +191,12 @@ class AuthService {
   };
 
   static findHeaderToken = async (req: Request): Promise<TokenModelDto> => {
-    const headerToken = req.headers.authorization?.split('Bearer ')[1].trim();
+    const bearer = req.headers.authorization;
+    if (!bearer || !bearer.startsWith('Bearer ')) {
+      throw createHttpError(401, 'no auth');
+    }
+
+    const headerToken = bearer.split('Bearer ')[1].trim();
     const token = await prisma.token.findFirst({
       select: {
         token: true,

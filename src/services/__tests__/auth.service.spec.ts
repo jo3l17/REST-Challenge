@@ -39,8 +39,17 @@ beforeAll(async () => {
       password: HASH,
       verifiedAt: new Date(),
       account: {
-        create: {},
-      },
+        create: {}
+      }
+    },
+  });
+  await prisma.user.create({
+    data: {
+      email: 'cvo523@hotmail.com',
+      name: 'Joel Valdez',
+      role: 'moderator',
+      password: HASH,
+      verifiedAt: new Date(),
     },
   });
 });
@@ -89,6 +98,67 @@ describe('Authentication service: ', () => {
   });
 
   describe('verifyToken', () => {
+    it('should throw token expired and send new email', async () => {
+      expect.assertions(2);
+      const data: jwtData = { id: user.id, role: 'user', type: 'verification' };
+      const token = await AuthService.generateToken(data, '-10s');
+      await prisma.token.create({
+        select: {
+          token: true,
+          expirationDate: true,
+          userId: true,
+        },
+        data: {
+          token,
+          userId: data.id,
+          expirationDate: new Date(),
+        },
+      });
+      try {
+        await AuthService.verifyToken(token, 'verification');
+      } catch (e) {
+        expect(
+          (createHttpError as jest.MockedFunction<typeof createHttpError>).mock
+            .calls[0][0],
+        ).toBe(100);
+        expect(
+          (createHttpError as jest.MockedFunction<typeof createHttpError>).mock
+            .calls[0][1],
+        ).toMatch('token expired, new token sent to email');
+      }
+    });
+
+    it('should throw token expired', async () => {
+      expect.assertions(2);
+      const data: jwtData = { id: user.id, role: 'user', type: 'session' };
+      const token = await AuthService.generateToken(data, '-10s');
+      await prisma.token.create({
+        select: {
+          token: true,
+          expirationDate: true,
+          userId: true,
+        },
+        data: {
+          token,
+          userId: data.id,
+          expirationDate: new Date(),
+        },
+      });
+      try {
+        await AuthService.verifyToken(token);
+      } catch (e) {
+        console.log(e);
+        expect(
+          (createHttpError as jest.MockedFunction<typeof createHttpError>).mock
+            .calls[0][0],
+        ).toBe(498);
+        expect(
+          (createHttpError as jest.MockedFunction<typeof createHttpError>).mock
+            .calls[0][1],
+        ).toMatch('token expired');
+      }
+    });
+
     it('should return a verifiedToken', async () => {
       expect.assertions(2);
       const data: jwtData = { id: user.id, role: 'user', type: 'verification' };
@@ -124,6 +194,41 @@ describe('Authentication service: ', () => {
       const token = await AuthService.createToken(data);
       await AuthService.sendNewVerification(token.token);
       expect(sgMail.send).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('deleteToken', () => {
+    it('should return a deleted token', async () => {
+      const token = await prisma.token.create({
+        data: {
+          token: '123',
+          expirationDate: new Date(),
+          userId: user.id,
+        },
+      });
+      const deletedToken = await AuthService.deleteToken(token.id);
+      expect(deletedToken.id).toEqual(token.id);
+    });
+  });
+
+  describe('deleteTokenByUserId', () => {
+    it('should return all deleted tokens', async () => {
+      await prisma.token.create({
+        data: {
+          token: '123',
+          expirationDate: new Date(),
+          userId: user.id,
+        },
+      });
+      await prisma.token.create({
+        data: {
+          token: '123',
+          expirationDate: new Date(),
+          userId: user.id,
+        },
+      });
+      const deletedTokens = await AuthService.deleteTokenByUserId(user.id);
+      expect(deletedTokens.count).toBe(6);
     });
   });
 
@@ -180,24 +285,25 @@ describe('Authentication service: ', () => {
       expect(typeof token.token).toBe('string');
     });
 
-    it('should throw no user found', async () => {
-      expect.assertions(2);
+    it('should return a token with accountId', async () => {
       const loginData = plainToClass(LoginUserDto, {
-        email: 'joelvaldezangeles@gmail2.com',
-        password: '123456789',
+        email: 'joelvaldezangeles@gmail.com',
+        password: '12345678',
       });
-      try {
-        await AuthService.login(loginData);
-      } catch (e) {
-        expect(
-          (createHttpError as jest.MockedFunction<typeof createHttpError>).mock
-            .calls[0][0],
-        ).toBe(404);
-        expect(
-          (createHttpError as jest.MockedFunction<typeof createHttpError>).mock
-            .calls[0][1],
-        ).toMatch('no user found');
-      }
+      const token = await AuthService.login(loginData);
+      const payload = await AuthService.verifyToken(token.token);
+      expect(typeof token.token).toBe('string');
+      expect(payload.accountId).toBeTruthy();
+    });
+
+    it('should return a token without accountId', async () => {
+      const loginData = plainToClass(LoginUserDto, {
+        email: 'cvo523@hotmail.com',
+        password: '12345678',
+      });
+      const token = await AuthService.login(loginData);
+      const payload = await AuthService.verifyToken(token.token);
+      expect(payload.accountId).toBeFalsy();
     });
 
     it('should throw the email or password are wrong', async () => {
@@ -226,22 +332,22 @@ describe('Authentication service: ', () => {
       const user = plainToClass(UserDto, authenticatedUser);
       const token = await AuthService.recoverPassword(user);
       expect(sgMail.send).toHaveBeenCalledTimes(1);
-      expect(typeof token).toBe('string')
+      expect(typeof token).toBe('string');
     });
   });
 
   describe('hashPassword', () => {
     it('should return a hashed password', async () => {
       const hashedPassword = await AuthService.hashPassword('12345678');
-      expect(typeof hashedPassword).toBe('string')
+      expect(typeof hashedPassword).toBe('string');
     });
   });
 
   describe('findHeaderToken', () => {
     it('should throw no token found', async () => {
-      const req = { headers: { authorization: 'Bearer 123' } }
+      const req = { headers: { authorization: 'Bearer 123' } };
       try {
-        await AuthService.findHeaderToken(req as Request)
+        await AuthService.findHeaderToken(req as Request);
       } catch (e) {
         expect(
           (createHttpError as jest.MockedFunction<typeof createHttpError>).mock
@@ -253,20 +359,36 @@ describe('Authentication service: ', () => {
         ).toMatch('no token found');
       }
     });
+    
+    it('should throw no auth', async () => {
+      const req = { headers: { authorization: '' } };
+      try {
+        await AuthService.findHeaderToken(req as Request);
+      } catch (e) {
+        expect(
+          (createHttpError as jest.MockedFunction<typeof createHttpError>).mock
+            .calls[0][0],
+        ).toBe(401);
+        expect(
+          (createHttpError as jest.MockedFunction<typeof createHttpError>).mock
+            .calls[0][1],
+        ).toMatch('no auth');
+      }
+    });
 
     it('should return a valid token', async () => {
       const data: jwtData = { id: user.id, role: 'user', type: 'session' };
       const token = await AuthService.createToken(data);
-      const req = { headers: { authorization: `Bearer ${token.token}` } }
-      const tokenResponse = await AuthService.findHeaderToken(req as Request)
-      expect(tokenResponse.userId).toEqual(token.userId)
+      const req = { headers: { authorization: `Bearer ${token.token}` } };
+      const tokenResponse = await AuthService.findHeaderToken(req as Request);
+      expect(tokenResponse.userId).toEqual(token.userId);
     });
   });
 
   describe('findToken', () => {
     it('should throw no token found', async () => {
       try {
-        await AuthService.findToken('123')
+        await AuthService.findToken('123');
       } catch (e) {
         expect(
           (createHttpError as jest.MockedFunction<typeof createHttpError>).mock
@@ -282,18 +404,26 @@ describe('Authentication service: ', () => {
     it('should return a valid token', async () => {
       const data: jwtData = { id: user.id, role: 'user', type: 'session' };
       const token = await AuthService.createToken(data);
-      const tokenResponse = await AuthService.findToken(token.token)
-      expect(tokenResponse.userId).toEqual(token.userId)
+      const tokenResponse = await AuthService.findToken(token.token);
+      expect(tokenResponse.userId).toEqual(token.userId);
     });
   });
   describe('updateToken', () => {
     it('should return the updated token', async () => {
-      const data: jwtData = { id: authenticatedUser.id, role: 'user', type: 'session' };
+      const data: jwtData = {
+        id: authenticatedUser.id,
+        role: 'user',
+        type: 'session',
+      };
       const token = await AuthService.createToken(data);
       const tokenToUpdate = await AuthService.findToken(token.token);
-      const payload = await AuthService.verifyToken(token.token)
-      const updatedToken = await AuthService.updateToken(tokenToUpdate.id, authenticatedUser.id)
+      const payload = await AuthService.verifyToken(token.token);
+      const updatedToken = await AuthService.updateToken(
+        tokenToUpdate.id,
+        authenticatedUser.id,
+        'session',
+      );
       expect(payload.id).toEqual(updatedToken.userId);
-    })
-  })
+    });
+  });
 });

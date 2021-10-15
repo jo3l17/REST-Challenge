@@ -1,5 +1,5 @@
+import { Role } from '.prisma/client'
 import { Exclude, Expose, Transform } from 'class-transformer'
-import { role } from '../../../utils/jwt.util'
 
 @Exclude()
 export class UserDto {
@@ -16,7 +16,7 @@ export class UserDto {
   readonly temporalEmail: string | null
 
   @Expose()
-  readonly role: role
+  readonly role: Role
 
   @Expose()
   readonly password: string

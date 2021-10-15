@@ -1,16 +1,18 @@
+import { Role } from ".prisma/client";
+
 const secret = process.env.SECRET_JWT_KEY || 'ravn_nerdery';
 const expiresIn = '1h';
 
 type jwtData = {
   id: number;
-  role: role;
+  role: Role;
   type: sessionType;
   accountId?: number;
 };
 
 type jwtPayload = {
   id: number;
-  role: role;
+  role: Role;
   type: sessionType;
   accountId?: number;
   iat: number;
@@ -18,6 +20,5 @@ type jwtPayload = {
 };
 
 type sessionType = 'session' | 'password' | 'email' | 'verification';
-type role = 'user' | 'moderator'
 
-export { secret, expiresIn, jwtData, jwtPayload, sessionType, role };
+export { secret, expiresIn, jwtData, jwtPayload, sessionType };
