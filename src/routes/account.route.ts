@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import asyncHandler from 'express-async-handler';
 import { getAccount, updateAccount } from '../controllers/account.controller';
+import { verifyAccount } from '../middleware/account.middleware';
 import { protect } from '../middleware/auth.middleware';
 import { commentAccountRouter } from './comment.route';
 import { postRouter, postAccountRouter } from './post.route';
@@ -12,7 +13,7 @@ accountRouter
   .get('/:id', asyncHandler(getAccount))
   .patch('/me', protect, asyncHandler(updateAccount))
   .use('/me/posts', protect, postAccountRouter)
-  .use('/:accountId/posts', protect, postRouter)
+  .use('/:accountId/posts', protect, verifyAccount, postRouter)
   .use('/me/comments', protect, commentAccountRouter);
 
 export { accountRouter };

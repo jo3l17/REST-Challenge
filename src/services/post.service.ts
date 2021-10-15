@@ -26,7 +26,7 @@ class PostService {
     });
   };
 
-  static getPublicPosts = async (accountId: number): Promise<Post[]> => {
+  static getPublicPosts = async (accountId?: number): Promise<Post[]> => {
     console.log(accountId);
     return await prisma.post.findMany({
       where: {
@@ -35,7 +35,7 @@ class PostService {
             published: {
               equals: true,
             },
-            accountId: isNaN(accountId) ? undefined : accountId,
+            accountId: accountId,
           },
         ],
       },
@@ -62,10 +62,7 @@ class PostService {
               equals: postId,
             },
             accountId: {
-              equals: isNaN(accountId) ? undefined : accountId,
-            },
-            published: {
-              equals: true,
+              equals: accountId,
             },
           },
         ],
@@ -73,7 +70,7 @@ class PostService {
     });
 
     if (!post) {
-      throw createHttpError(404, 'Account or Post not found');
+      throw createHttpError(404, 'Post not found');
     }
 
     return post;
@@ -115,7 +112,7 @@ class PostService {
         }
       }
 
-      throw error;
+      throw createHttpError(500, 'Server error');
     }
   };
 
@@ -131,11 +128,11 @@ class PostService {
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if ((error.code = 'P2025')) {
-          throw createHttpError(404, 'Post to update not found');
+          throw createHttpError(404, 'Post to delete not found');
         }
       }
 
-      throw error;
+      throw createHttpError(500, 'Server error');
     }
   };
 
@@ -143,6 +140,8 @@ class PostService {
     postId: number,
     actionType: string,
   ): Promise<FetchActionPostDto> => {
+    console.log(`${postId} - ${actionType}`);
+
     const action = await prisma.post.findUnique({
       where: {
         id: postId,
@@ -172,6 +171,8 @@ class PostService {
     postId: number,
     action: string,
   ): Promise<Post> => {
+    this.getDeterminedPost(postId, accountId);
+
     const actionByAccount = await prisma.postLike.findFirst({
       select: {
         id: true,
@@ -235,10 +236,6 @@ class PostService {
         },
       },
     });
-
-    if (!post) {
-      throw createHttpError(404, 'post not found');
-    }
 
     return post;
   };

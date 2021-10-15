@@ -61,7 +61,7 @@ class CommentService {
         }
       }
 
-      throw error;
+      throw createHttpError(500, 'Server error');
     }
   };
 
@@ -93,11 +93,11 @@ class CommentService {
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if ((error.code = 'P2025')) {
-          throw createHttpError(404, 'Post to update not found');
+          throw createHttpError(404, 'Comment to delete not found');
         }
       }
 
-      throw error;
+      throw createHttpError(500, 'Server error');
     }
   };
 
@@ -134,10 +134,7 @@ class CommentService {
     });
 
     if (!action) {
-      throw createHttpError(
-        404,
-        `Comment not found or ${[actionType]} not supported`,
-      );
+      throw createHttpError(404, 'Post not found');
     }
 
     return plainToClass(FetchActionCommentDto, action);
@@ -148,6 +145,8 @@ class CommentService {
     commentId: number,
     action: string,
   ): Promise<Comment> => {
+    this.getDeterminedComment(commentId, accountId);
+
     const actionByAccount = await prisma.commentLike.findFirst({
       select: {
         id: true,
@@ -244,6 +243,32 @@ class CommentService {
     });
 
     return comment;
+  };
+
+  private static getDeterminedComment = async (
+    commentId: number,
+    accountId: number,
+  ): Promise<Comment> => {
+    const post = await prisma.comment.findFirst({
+      where: {
+        AND: [
+          {
+            id: {
+              equals: commentId,
+            },
+            accountId: {
+              equals: accountId,
+            },
+          },
+        ],
+      },
+    });
+
+    if (!post) {
+      throw createHttpError(404, 'Comment not found');
+    }
+
+    return post;
   };
 }
 export { CommentService };
