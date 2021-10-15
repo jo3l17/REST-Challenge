@@ -1,4 +1,4 @@
-import express, { Request, Response } from 'express';
+import express from 'express';
 import { json, urlencoded } from 'body-parser';
 import morgan from 'morgan';
 import { PrismaClient } from '.prisma/client';
@@ -11,27 +11,19 @@ export const prisma = new PrismaClient({
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const HOST = process.env.HOST || 'localhost';
 
 app.use(morgan('dev'));
 app.use(urlencoded({ extended: false }));
 app.use(json());
 
-app.use(router(app))
+app.use(router(app));
 
 app.listen(PORT, async () => {
   try {
     await prisma.$connect();
   } catch (e) {
-    console.log(e);
     throw e;
   } finally {
     await prisma.$disconnect();
   }
-  console.log(`App running at http://${HOST}${PORT ? `:${PORT}` : ''}`);
 });
-
-
-app.use((req: Request, res: Response) => {
-  res.send('hola mundo')
-})

@@ -1,6 +1,5 @@
-import { Actions, Comment, Prisma, PrismaClient } from '.prisma/client';
+import { Actions, Comment, PrismaClient } from '.prisma/client';
 import { plainToClass } from 'class-transformer';
-import createHttpError from 'http-errors';
 import { CreateCommentDto } from '../models/comments/request/create.comment';
 import { FetchActionCommentDto } from '../models/comments/response/fetch.action.comment';
 

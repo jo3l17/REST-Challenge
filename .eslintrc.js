@@ -1,7 +1,6 @@
 module.exports = {
   env: {
     node: true,
-    test: true,
   },
   extends: ["plugin:@typescript-eslint/recommended",
     //"plugin:prettier/recommended",
@@ -13,13 +12,7 @@ module.exports = {
     project: "./tsconfig.json",
     sourceType: "module"
   },
-  // rules: {
-  //   'prettier/prettier': [
-  //     'error',
-  //     {
-  //       singleQuote: true,
-  //       semi: true,
-  //     },
-  //   ],
-  // },
+  rules: {
+    "no-console": ["error", { allow: ["warn"] }]
+  },
 };

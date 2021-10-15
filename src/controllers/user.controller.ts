@@ -20,8 +20,7 @@ const verifyUser = async (req: Request, res: Response): Promise<Response> => {
 const emailChange = async (req: Request, res: Response): Promise<Response> => {
   const id = req.body.user.id;
   const { email } = req.body;
-  const user = await UserService.createTemporalEmail(id, email);
-  console.log(user);
+  await UserService.createTemporalEmail(id, email);
 
   return res.status(200).json({ message: 'Please verify your new email' });
 };

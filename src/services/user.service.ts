@@ -13,23 +13,21 @@ const prisma = new PrismaClient();
 class UserService {
   static create = async (data: CreateUserDto): Promise<User> => {
     const HASH = await AuthService.hashPassword(data.password);
-    const user = await prisma.user.create(
-      {
-        data:
-        {
-          email: data.email,
-          name: data.name,
-          role: data.role,
-          password: HASH
-        }
-      });
+    const user = await prisma.user.create({
+      data: {
+        email: data.email,
+        name: data.name,
+        role: data.role,
+        password: HASH,
+      },
+    });
     return user;
   };
 
   static findByEmail = async (email: string): Promise<UserDto> => {
     const user = await prisma.user.findUnique({
       where: { email },
-      rejectOnNotFound: true
+      rejectOnNotFound: true,
     });
 
     if (!user.verifiedAt) {
@@ -43,7 +41,7 @@ class UserService {
     const user = await prisma.user.findUnique({
       ...userPersonalData,
       where: { id },
-      rejectOnNotFound: true
+      rejectOnNotFound: true,
     });
     return user;
   };
@@ -59,15 +57,12 @@ class UserService {
           },
         ],
       },
-      rejectOnNotFound: true
+      rejectOnNotFound: true,
     });
     return user;
   };
 
-  static updateVerification = async (
-    id: number,
-    role: Role,
-  ): Promise<User> => {
+  static updateVerification = async (id: number, role: Role): Promise<User> => {
     const user = await prisma.user.update({
       where: { id },
       data: {
@@ -81,7 +76,10 @@ class UserService {
     return user;
   };
 
-  static updatePassword = async (id: number, password: string): Promise<User> => {
+  static updatePassword = async (
+    id: number,
+    password: string,
+  ): Promise<User> => {
     const user = await prisma.user.update({
       where: { id },
       data: { password },

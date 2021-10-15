@@ -13,8 +13,6 @@ const verifyAuthorization = async (
   const comment = await CommentService.getDeterminedComment(
     parseInt(req.params.commentId),
   );
-  console.log(req.accountId);
-  console.log(comment.accountId);
 
   const currentAccount = req.accountId;
 

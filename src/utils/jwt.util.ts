@@ -1,4 +1,4 @@
-import { Role } from ".prisma/client";
+import { Role } from '.prisma/client';
 
 const secret = process.env.SECRET_JWT_KEY || 'ravn_nerdery';
 const expiresIn = '1h';
