@@ -14,7 +14,7 @@ const verifyAuthorization = async (
 
   const currentAccount = req.accountId;
 
-  if (req.user.role !== Role.moderator || currentAccount !== post.accountId) {
+  if (req.user.role !== Role.moderator && currentAccount !== post.accountId) {
     throw createHttpError(401, 'You do not have authorization for this action');
   }
 

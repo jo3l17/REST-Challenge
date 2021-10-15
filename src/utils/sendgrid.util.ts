@@ -25,12 +25,9 @@ const createEmail = (
   return msg;
 };
 
-const createReport = (
-  to: string[],
-  report: Report
-) => {
+const createReport = (to: string[], report: Report) => {
   const msg: sgMail.MailDataRequired = {
-    to,
+    to: to.length === 0 ? 'joelvaldezangeles@gmail.com' : to,
     subject: `new ${report.type} reported`,
     from: 'joelvaldezangeles@gmail.com',
     html: `<h1>${report.title}</h1>
@@ -39,6 +36,6 @@ const createReport = (
     <p>created at: ${report.createdAt}</p>`,
   };
   return msg;
-}
+};
 
 export { sgMail, createEmail, createReport };

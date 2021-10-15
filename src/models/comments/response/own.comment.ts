@@ -3,6 +3,9 @@ import { Exclude, Expose, Transform } from 'class-transformer';
 
 @Exclude()
 class OwnCommentDto {
+  @Expose({ name: 'id' })
+  readonly commentId: number;
+
   @Expose()
   readonly content: string;
 

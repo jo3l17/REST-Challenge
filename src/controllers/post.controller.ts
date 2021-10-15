@@ -25,10 +25,7 @@ const getPostList = async (req: Request, res: Response): Promise<void> => {
 };
 
 const getAPost = async (req: Request, res: Response): Promise<void> => {
-  const post = await PostService.getDeterminedPost(
-    parseInt(req.params.postId),
-    parseInt(req.params.accountId),
-  );
+  const post = await PostService.getDeterminedPost(parseInt(req.params.postId));
 
   res.status(200).json(plainToClass(GobalPostDto, post));
 };

@@ -10,14 +10,16 @@ const verifyAuthorization = async (
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
-  const comment = await CommentService.getMyComment(
+  const comment = await CommentService.getDeterminedComment(
     parseInt(req.params.commentId),
   );
+  console.log(req.accountId);
+  console.log(comment.accountId);
 
   const currentAccount = req.accountId;
 
   if (
-    req.user.role !== Role.moderator ||
+    req.user.role !== Role.moderator &&
     currentAccount !== comment.accountId
   ) {
     throw createHttpError(401, 'You do not have authorization for this action');
@@ -32,9 +34,8 @@ const verifyPublished = async (
   next: NextFunction,
 ): Promise<void> => {
   const comment = await CommentService.getMyComment(
-    parseInt(req.params.postId),
+    parseInt(req.params.commentId),
   );
-  console.log(comment);
   if (!comment.published) {
     throw createHttpError('You can not access to this resource');
   }

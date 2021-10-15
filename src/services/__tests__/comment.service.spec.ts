@@ -1,4 +1,4 @@
-import { Account, Actions, Comment, Post, PrismaClient, User } from '.prisma/client';
+import { Account, Comment, Post, PrismaClient, User } from '.prisma/client';
 import { plainToClass } from 'class-transformer';
 import createHttpError from 'http-errors';
 import { CreateCommentDto } from '../../models/comments/request/create.comment';
@@ -9,6 +9,8 @@ jest.mock('http-errors', () => {
   return jest.fn();
 });
 
+jest.mock('../../utils/sendgrid.util');
+
 const prisma = new PrismaClient();
 
 let user: User;
@@ -17,16 +19,11 @@ let publicPost: Post;
 let publicComment: Comment;
 
 beforeEach(() => {
-  (createHttpError as 
-    jest.MockedFunction<typeof createHttpError>)
-    .mockClear();
+  (createHttpError as jest.MockedFunction<typeof createHttpError>).mockClear();
 });
 
 beforeAll(async () => {
   await prisma.$connect;
-  await prisma.post.deleteMany();
-  await prisma.account.deleteMany();
-  await prisma.token.deleteMany();
   await prisma.user.deleteMany();
 
   user = await prisma.user.create({
@@ -67,9 +64,9 @@ beforeAll(async () => {
       },
       account: {
         connect: {
-          id: account.id
-        }
-      }
+          id: account.id,
+        },
+      },
     },
   });
 
@@ -97,13 +94,12 @@ beforeAll(async () => {
       },
       account: {
         connect: {
-          id: account.id
-        }
-      }
+          id: account.id,
+        },
+      },
     },
   });
 });
-  
 
 afterAll(async () => {
   await prisma.$disconnect;
@@ -113,29 +109,21 @@ describe('Comment Service', () => {
   it('should return the quantify of an action of a comment', async () => {
     const result = await CommentService.recountAction(
       publicComment.id,
-      'likes'
+      'likes',
     );
-    console.log(result)
+    console.log(result);
     expect(result.likes).toBe(publicComment.likes);
   });
 
-  it('should return a comment with a new action added', async() => {
-    await CommentService.addAction(
-      account.id, 
-      publicComment.id, 
-      'like'
-    );
+  it('should return a comment with a new action added', async () => {
+    await CommentService.addAction(account.id, publicComment.id, 'like');
 
-    await CommentService.addAction(
-      account.id, 
-      publicComment.id, 
-      'dislike'
-    );
+    await CommentService.addAction(account.id, publicComment.id, 'dislike');
 
     const deleteAction = await CommentService.addAction(
-      account.id, 
-      publicComment.id, 
-      'dislike'
+      account.id,
+      publicComment.id,
+      'dislike',
     );
 
     expect(deleteAction.dislikes).toBe(0);
@@ -170,27 +158,17 @@ describe('Comment Service', () => {
     expect(result.id == publicComment.id).toBeTruthy();
   });
 
-  it('should throw comment not found', async () => {
-    try {
-      await CommentService.getMyComment(-1);
-    } catch (error) {
-      expect(
-        (createHttpError as jest.MockedFunction<typeof createHttpError>).mock
-          .calls[0][0],
-      ).toBe(404);
-      expect(
-        (createHttpError as jest.MockedFunction<typeof createHttpError>).mock
-          .calls[0][1],
-      ).toMatch('Comment not found');
-    }
-  });
-
   it('should return global public comment list', async () => {
     const result = await CommentService.getPublicComments(publicPost.id);
     expect(Array.isArray(result)).toBeTruthy();
     expect(result).toEqual(
       expect.arrayContaining([expect.objectContaining({ published: true })]),
     );
+  });
+
+  it('should return a specific public post of an account', async () => {
+    const result = await CommentService.getDeterminedComment(publicComment.id);
+    expect(result.id == publicComment.id).toBeTruthy();
   });
 
   it('should return public comments of an account', async () => {
@@ -212,24 +190,6 @@ describe('Comment Service', () => {
     expect(result.content).toEqual(updatedTitle.content);
   });
 
-  it('should throw comment to update not found', async () => {
-    try {
-      const updatedTitle = {
-        title: 'Introduction to REST API',
-      };
-      await CommentService.update(-1, plainToClass(UpdateCommentDto, updatedTitle));
-    } catch (error) {
-      expect(
-        (createHttpError as jest.MockedFunction<typeof createHttpError>).mock
-          .calls[0][0],
-      ).toBe(404);
-      expect(
-        (createHttpError as jest.MockedFunction<typeof createHttpError>).mock
-          .calls[0][1],
-      ).toMatch("Comment to update not found");
-    }
-  });
-
   it('should return an deleted comment', async () => {
     const comment = await prisma.comment.create({
       data: {
@@ -242,29 +202,12 @@ describe('Comment Service', () => {
         },
         account: {
           connect: {
-            id: account.id
-          }
-        }
+            id: account.id,
+          },
+        },
       },
     });
-    const result = await CommentService.delete(
-      comment.id,
-    );
+    const result = await CommentService.delete(comment.id);
     expect(result.id).toEqual(comment.id);
-  });
-
-  it('should throw comment to delete not found', async () => {
-    try {
-      await CommentService.delete(-1);
-    } catch (error) {
-      expect(
-        (createHttpError as jest.MockedFunction<typeof createHttpError>).mock
-          .calls[0][0],
-      ).toBe(404);
-      expect(
-        (createHttpError as jest.MockedFunction<typeof createHttpError>).mock
-          .calls[0][1],
-      ).toMatch("Comment to delete not found");
-    }
   });
 });

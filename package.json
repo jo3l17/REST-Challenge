@@ -4,11 +4,13 @@
   "description": "rest challenge for ravn development nerdery program",
   "main": "index.js",
   "scripts": {
-    "test": "npx dotenv -e env.test jest -i --runInBand" ,
+    "test": "npx dotenv -e env.test jest -i --runInBand",
     "format": "prettier --write \"src/**/*.ts\" ",
     "lint": "eslint .",
     "migrate": "prisma migrate dev --preview-feature",
-    "dev": "nodemon ./src/server.ts"
+    "dev": "nodemon ./src/server.ts",
+    "start": "node dist/server.js",
+    "build": "npx tsc"
   },
   "repository": {
     "type": "git",

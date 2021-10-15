@@ -13,6 +13,7 @@ class FetchActionPostDto {
   readonly dislikes: number;
 
   @Expose()
+  @IsOptional()
   readonly likedBy: PostLike[];
 }
 
