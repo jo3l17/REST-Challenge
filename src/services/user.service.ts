@@ -19,6 +19,7 @@ class UserService {
         {
           email: data.email,
           name: data.name,
+          role: data.role,
           password: HASH
         }
       });

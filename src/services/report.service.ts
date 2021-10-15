@@ -3,6 +3,7 @@ import { plainToClass } from 'class-transformer';
 import createHttpError from 'http-errors';
 import { CreatePostReportDto } from '../models/reports/request/create.report.dto';
 import { FetchReportsDto } from '../models/reports/response/fetch.reports.dto';
+import { createEmail, createReport, sgMail } from '../utils/sendgrid.util';
 
 const prisma = new PrismaClient();
 
@@ -35,11 +36,25 @@ class ReportService {
       });
 
       console.log(report);
+      this.sendReports(report);
       return report;
     } catch (error) {
       throw error;
     }
   };
+
+  private static sendReports = async (report: Report) => {
+    const moderators = await prisma.user.findMany({
+      select: { email: true },
+      where: { role: 'moderator' }
+    })
+    console.log(moderators);
+    const emailMod = moderators.map(moderator => moderator.email)
+    console.log(emailMod);
+    const msg = createReport(emailMod, report)
+    
+    await sgMail.send(msg)
+  }
 
   static deleteReport = async (reportId: number): Promise<Report> => {
     return await prisma.report.delete({
