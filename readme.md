@@ -25,3 +25,8 @@
 ## API Documentation
 
 Refer to the API documentation following this link: https://ravn-rest-challenge.herokuapp.com/docs
+
+## Authors
+
+* Joel Valdez - https://github.com/jo3l17
+* Juan Pejerrey - https://github.com/juanmdpc
