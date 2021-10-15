@@ -11,12 +11,12 @@ const expressRouter = express.Router()
 
 export function router(app: Router): Router {
   app
-  .use(asyncHandler(authRouter))
-  .use('/accounts', asyncHandler(accountRouter))
-  .use('/users', asyncHandler(userRoute))
-  .use('/posts', postRouter)
-  .use('/reports', postReportRouter)
-  .use(errorHandler);
+    .use('/api/v1', asyncHandler(authRouter))
+    .use('/api/v1/accounts', asyncHandler(accountRouter))
+    .use('/api/v1/users', asyncHandler(userRoute))
+    .use('/api/v1/posts', postRouter)
+    .use('/api/v1/reports', postReportRouter)
+    .use(errorHandler);
 
   return expressRouter
 }

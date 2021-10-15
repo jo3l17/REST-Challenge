@@ -17,7 +17,7 @@ app.use(morgan('dev'));
 app.use(urlencoded({ extended: false }));
 app.use(json());
 
-app.use('/api/v1', router(app))
+app.use(router(app))
 
 app.listen(PORT, async () => {
   try {
