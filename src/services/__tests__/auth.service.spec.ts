@@ -10,6 +10,8 @@ import { LoginUserDto } from '../../models/users/request/login-user.dto';
 import { UserDto } from '../../models/users/response/user.dto';
 import { Request } from 'express';
 
+const prisma = new PrismaClient();
+
 jest.mock('http-errors', () => {
   return jest.fn();
 });

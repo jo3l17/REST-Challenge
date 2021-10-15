@@ -67,11 +67,8 @@ class PostService {
           },
         ],
       },
+      rejectOnNotFound: true
     });
-
-    if (!post) {
-      throw createHttpError(404, 'Post not found');
-    }
 
     return post;
   };
@@ -96,44 +93,26 @@ class PostService {
     postId: number,
     body: UpdatePostDto,
   ): Promise<Post> => {
-    try {
-      const postUpdated = await prisma.post.update({
-        data: body,
-        where: {
-          id: postId,
-        },
-      });
+    const post = await this.getMyPost(postId);
+    const postUpdated = await prisma.post.update({
+      data: body,
+      where: {
+        id: post.id,
+      },
+    });
 
-      return postUpdated;
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        if ((error.code = 'P2025')) {
-          throw createHttpError(404, 'Post to update not found');
-        }
-      }
-
-      throw createHttpError(500, 'Server error');
-    }
+    return postUpdated;
   };
 
   static delete = async (postId: number): Promise<Post> => {
-    try {
-      const postDeleted = await prisma.post.delete({
-        where: {
-          id: postId,
-        },
-      });
+    const post = await this.getMyPost(postId);
+    const postDeleted = await prisma.post.delete({
+      where: {
+        id: post.id,
+      },
+    });
 
-      return postDeleted;
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        if ((error.code = 'P2025')) {
-          throw createHttpError(404, 'Post to delete not found');
-        }
-      }
-
-      throw createHttpError(500, 'Server error');
-    }
+    return postDeleted;
   };
 
   static recountAction = async (
@@ -157,11 +136,8 @@ class PostService {
           },
         },
       },
+      rejectOnNotFound: true
     });
-
-    if (!action) {
-      throw createHttpError(404, 'Post not found');
-    }
 
     return plainToClass(FetchActionPostDto, action);
   };
@@ -196,7 +172,7 @@ class PostService {
     const newAction = action + 's';
 
     if (actionByAccount) {
-      const prevAction = actionByAccount?.type + 's';
+      const prevAction = actionByAccount.type + 's';
       if (prevAction !== newAction) {
         await PostService.deleteAction(postId, actionByAccount.id, prevAction);
         post = await PostService.createAction(accountId, postId, newAction);
