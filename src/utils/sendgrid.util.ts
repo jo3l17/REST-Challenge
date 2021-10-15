@@ -1,3 +1,4 @@
+import { Report } from '.prisma/client';
 import sgMail, { MailDataRequired } from '@sendgrid/mail';
 import dotenv from 'dotenv';
 dotenv.config();
@@ -24,4 +25,20 @@ const createEmail = (
   return msg;
 };
 
-export { sgMail, createEmail };
+const createReport = (
+  to: string[],
+  report: Report
+) => {
+  const msg: sgMail.MailDataRequired = {
+    to,
+    subject: `new ${report.type} reported`,
+    from: 'joelvaldezangeles@gmail.com',
+    html: `<h1>${report.title}</h1>
+    <p>${report.content}</p>
+    <p>report Id: ${report.id}</p>
+    <p>created at: ${report.createdAt}</p>`,
+  };
+  return msg;
+}
+
+export { sgMail, createEmail, createReport };

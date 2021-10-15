@@ -13,7 +13,7 @@ accountRouter
   .get('/:id', asyncHandler(getAccount))
   .patch('/me', protect, asyncHandler(updateAccount))
   .use('/me/posts', protect, postAccountRouter)
-  .use('/:accountId/posts', protect, verifyAccount, postRouter)
+  .use('/:accountId/posts', protect, asyncHandler(verifyAccount), postRouter)
   .use('/me/comments', protect, commentAccountRouter);
 
 export { accountRouter };
