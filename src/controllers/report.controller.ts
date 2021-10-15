@@ -9,7 +9,6 @@ const createReport = async (req: Request, res: Response): Promise<void> => {
   const dto = plainToClass(CreateReportDto, req.body);
   dto.isValid();
 
-  console.log(dto);
   const report = await ReportService.createReport(
     req.accountId,
     res.locals.type,
@@ -17,7 +16,6 @@ const createReport = async (req: Request, res: Response): Promise<void> => {
     dto,
   );
 
-  console.log(report);
   res.status(200).json(plainToClass(ReportDto, report));
 };
 

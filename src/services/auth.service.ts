@@ -12,7 +12,7 @@ import { Request } from 'express';
 import userService from './user.service';
 import createHttpError from 'http-errors';
 import accountService from './account.service';
-import { createEmail, HOST, PORT, sgMail } from '../utils/sendgrid.util';
+import { createEmail, HOST, sgMail } from '../utils/sendgrid.util';
 import { CreateUserDto } from '../models/users/request/create-user.dto';
 import { TokenResponseDto } from '../models/token/response/token-response.dto';
 import { LoginUserDto } from '../models/users/request/login-user.dto';
@@ -61,7 +61,10 @@ class AuthService {
     return token;
   };
 
-  static verifyToken = async (token: string, type: sessionType = 'session'): Promise<jwtPayload> => {
+  static verifyToken = async (
+    token: string,
+    type: sessionType = 'session',
+  ): Promise<jwtPayload> => {
     try {
       const verifiedToken = jwt.verify(token, secret) as jwtPayload;
       if (verifiedToken.type !== type) {
@@ -70,7 +73,6 @@ class AuthService {
 
       return verifiedToken;
     } catch (e) {
-      console.log(e);
       if (e instanceof TokenExpiredError) {
         if (type === 'verification') {
           await this.sendNewVerification(token);
@@ -90,7 +92,7 @@ class AuthService {
       user.email,
       `token signup`,
       `Hello ${user.name} use patch to this url to verify your account`,
-      `http://${HOST}${PORT ? `:${PORT}` : ''}/users/${newToken.token}/verify`,
+      `http://${HOST}/users/${newToken.token}/verify`,
       newToken.token,
     );
     await sgMail.send(msg);
@@ -106,7 +108,9 @@ class AuthService {
     return deletedToken;
   };
 
-  static deleteTokenByUserId = async (userId: number): Promise<Prisma.BatchPayload> => {
+  static deleteTokenByUserId = async (
+    userId: number,
+  ): Promise<Prisma.BatchPayload> => {
     const deletedTokens = await prisma.token.deleteMany({
       where: {
         userId,
@@ -124,7 +128,7 @@ class AuthService {
     });
     if (user) return false;
     return true;
-  }
+  };
 
   static signup = async (data: CreateUserDto): Promise<TokenResponseDto> => {
     const validEmail = await this.uniqueEmail(data.email);
@@ -142,7 +146,7 @@ class AuthService {
       data.email,
       `token signup`,
       `Hello ${data.name} use patch to this url to verify your account`,
-      `http://${HOST}${PORT ? `:${PORT}` : ''}/users/${token.token}/verify`,
+      `http://${HOST}/users/${token.token}/verify`,
       token.token,
     );
     await sgMail.send(msg);
@@ -151,20 +155,25 @@ class AuthService {
 
   static login = async (data: LoginUserDto): Promise<TokenResponseDto> => {
     const user = await userService.findByEmail(data.email);
-    const passwordExists = await this.validatePassword(data.password, user.password);
+    const passwordExists = await this.validatePassword(
+      data.password,
+      user.password,
+    );
     if (!passwordExists) {
       throw createHttpError(400, 'The email or password are wrong');
     }
-    const tokenData: jwtData = { id: user.id, role: user.role, type: 'session' };
+    const tokenData: jwtData = {
+      id: user.id,
+      role: user.role,
+      type: 'session',
+    };
     const account = await accountService.findByUserId(user.id);
-    let token
     if (account) {
       tokenData.accountId = account.id;
     }
 
-    token = await this.createToken(tokenData);
+    const token = await this.createToken(tokenData);
     return token;
-
   };
 
   static recoverPassword = async (user: UserDto): Promise<string> => {
@@ -177,7 +186,7 @@ class AuthService {
       user.email,
       `Password Recover`,
       `Hello ${user.name} use patch to this url to change you password with your new password`,
-      `http://${HOST}${PORT ? `:${PORT}` : ''}/users/passwords/${token}`,
+      `http://${HOST}/users/passwords/${token}`,
       token,
     );
     await sgMail.send(msg);
@@ -202,7 +211,7 @@ class AuthService {
         token: true,
         expirationDate: true,
         userId: true,
-        id: true
+        id: true,
       },
       where: {
         token: headerToken,

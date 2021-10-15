@@ -7,8 +7,6 @@ const verifyAuthorization = async (
   res: Response,
   next: NextFunction,
 ): Promise<void> => {
-  console.log(req.user);
-
   if (req.user.role !== Role.moderator) {
     throw createHttpError(401, 'You do not have authorization for this action');
   }

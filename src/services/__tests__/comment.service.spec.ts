@@ -111,7 +111,6 @@ describe('Comment Service', () => {
       publicComment.id,
       'likes',
     );
-    console.log(result);
     expect(result.likes).toBe(publicComment.likes);
   });
 

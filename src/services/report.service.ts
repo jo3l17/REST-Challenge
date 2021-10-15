@@ -1,10 +1,8 @@
 import { PrismaClient, Report, ReportType } from '.prisma/client';
 import { plainToClass } from 'class-transformer';
-import createHttpError from 'http-errors';
 import { CreateReportDto } from '../models/reports/request/create.report.dto';
 import { FetchReportsDto } from '../models/reports/response/fetch.reports.dto';
-import { createEmail, createReport, sgMail } from '../utils/sendgrid.util';
-import { PostService } from './post.service';
+import { createReport, sgMail } from '../utils/sendgrid.util';
 
 const prisma = new PrismaClient();
 

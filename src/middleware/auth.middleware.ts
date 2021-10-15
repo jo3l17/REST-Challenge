@@ -21,7 +21,7 @@ const protect = async (
 
   req.user = { ...user };
   if (payload.accountId) {
-    req.accountId = payload.accountId
+    req.accountId = payload.accountId;
   }
   next();
 };

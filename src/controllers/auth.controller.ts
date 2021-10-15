@@ -6,7 +6,7 @@ import AuthService from '../services/auth.service';
 import UserService from '../services/user.service';
 
 const signup = async (req: Request, res: Response): Promise<Response> => {
-  const user = plainToClass(CreateUserDto,req.body);
+  const user = plainToClass(CreateUserDto, req.body);
   await user.isValid();
   const token = await AuthService.signup(user);
 
@@ -14,7 +14,7 @@ const signup = async (req: Request, res: Response): Promise<Response> => {
 };
 
 const login = async (req: Request, res: Response): Promise<Response> => {
-  const user = plainToClass(LoginUserDto,req.body);
+  const user = plainToClass(LoginUserDto, req.body);
   await user.isValid();
   const token = await AuthService.login(user);
 

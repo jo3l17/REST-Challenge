@@ -1,20 +1,19 @@
-import { Expose } from "class-transformer";
-import { IsNotEmpty, IsNumber } from "class-validator";
+import { Expose } from 'class-transformer';
+import { IsNotEmpty, IsNumber } from 'class-validator';
 
 export class TokenModelDto {
-
-  readonly id: number
-
-  @Expose()
-  @IsNotEmpty()
-  readonly token: string
+  readonly id: number;
 
   @Expose()
   @IsNotEmpty()
-  readonly expirationDate: Date
+  readonly token: string;
+
+  @Expose()
+  @IsNotEmpty()
+  readonly expirationDate: Date;
 
   @Expose()
   @IsNotEmpty()
   @IsNumber()
-  readonly userId: number
+  readonly userId: number;
 }

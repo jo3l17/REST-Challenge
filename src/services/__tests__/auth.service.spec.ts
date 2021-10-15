@@ -39,8 +39,8 @@ beforeAll(async () => {
       password: HASH,
       verifiedAt: new Date(),
       account: {
-        create: {}
-      }
+        create: {},
+      },
     },
   });
   await prisma.user.create({
@@ -147,7 +147,6 @@ describe('Authentication service: ', () => {
       try {
         await AuthService.verifyToken(token);
       } catch (e) {
-        console.log(e);
         expect(
           (createHttpError as jest.MockedFunction<typeof createHttpError>).mock
             .calls[0][0],
@@ -260,8 +259,7 @@ describe('Authentication service: ', () => {
       expect.assertions(2);
       const userData = plainToClass(CreateUserDto, user);
       try {
-        const token = await AuthService.signup(userData);
-        console.log(token);
+        await AuthService.signup(userData);
       } catch (e) {
         expect(
           (createHttpError as jest.MockedFunction<typeof createHttpError>).mock
@@ -359,7 +357,7 @@ describe('Authentication service: ', () => {
         ).toMatch('no token found');
       }
     });
-    
+
     it('should throw no auth', async () => {
       const req = { headers: { authorization: '' } };
       try {

@@ -1,4 +1,4 @@
-import { Account, Comment, Post, PrismaClient, Report, User } from '.prisma/client';
+import { Account, Post, PrismaClient, Report, User } from '.prisma/client';
 import { plainToClass } from 'class-transformer';
 import { CreateReportDto } from '../../models/reports/request/create.report.dto';
 import { ReportService } from '../report.service';
@@ -10,7 +10,6 @@ const prisma = new PrismaClient();
 let user: User;
 let account: Account;
 let publicPost: Post;
-let publicComment: Comment;
 let reportTest: Report;
 
 beforeAll(async () => {
@@ -44,7 +43,7 @@ beforeAll(async () => {
     },
   });
 
-  publicComment = await prisma.comment.create({
+  await prisma.comment.create({
     data: {
       content: 'Amazing post!',
       published: true,

@@ -1,6 +1,5 @@
-import { Actions, Post, Prisma, PrismaClient } from '.prisma/client';
+import { Actions, Post, PrismaClient } from '.prisma/client';
 import { plainToClass } from 'class-transformer';
-import createHttpError from 'http-errors';
 import { CreatePostDto } from '../models/posts/request/create.post';
 import { UpdatePostDto } from '../models/posts/request/update.post';
 import { FetchActionPostDto } from '../models/posts/response/fetch.action.post';

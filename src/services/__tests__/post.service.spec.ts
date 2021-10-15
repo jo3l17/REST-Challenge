@@ -1,4 +1,4 @@
-import { Account, Actions, Post, PrismaClient, User } from '.prisma/client';
+import { Account, Post, PrismaClient, User } from '.prisma/client';
 import { plainToClass } from 'class-transformer';
 import createHttpError from 'http-errors';
 import { CreatePostDto } from '../../models/posts/request/create.post';
@@ -71,7 +71,6 @@ afterAll(async () => {
 describe('Post Service', () => {
   it('should return the quantify of an action of a post', async () => {
     const result = await PostService.recountAction(publicPost.id, 'likes');
-    console.log(result);
     expect(result.likes).toBe(publicPost.likes);
   });
 

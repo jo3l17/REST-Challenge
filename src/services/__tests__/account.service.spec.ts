@@ -108,18 +108,15 @@ describe('account service', () => {
         isNamePublic: false,
       };
       try {
-        await AccountService.update(
-          -1,
-          plainToClass(UpdateAccountDto, data),
-        );
+        await AccountService.update(-1, plainToClass(UpdateAccountDto, data));
       } catch (e) {
         expect(
           (createHttpError as jest.MockedFunction<typeof createHttpError>).mock
             .calls[0][0],
         ).toBe(404);
         expect(
-            (createHttpError as jest.MockedFunction<typeof createHttpError>).mock
-                .calls[0][1],
+          (createHttpError as jest.MockedFunction<typeof createHttpError>).mock
+            .calls[0][1],
         ).toMatch('no account found');
       }
     });

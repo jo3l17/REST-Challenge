@@ -35,7 +35,6 @@ const getMyComment = async (req: Request, res: Response): Promise<void> => {
 };
 
 const getACommment = async (req: Request, res: Response): Promise<void> => {
-  console.log(req.params.commentId);
   const comment = await CommentService.getDeterminedComment(
     parseInt(req.params.commentId),
   );

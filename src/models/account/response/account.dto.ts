@@ -1,17 +1,16 @@
-import { Exclude, Expose } from 'class-transformer'
+import { Exclude, Expose } from 'class-transformer';
 
 @Exclude()
 export class AccountDto {
   @Expose()
-  readonly id: number
+  readonly id: number;
 
   @Expose()
-  readonly isEmailPublic: boolean
+  readonly isEmailPublic: boolean;
 
   @Expose()
-  readonly isNamePublic: boolean
+  readonly isNamePublic: boolean;
 
   @Expose()
-  readonly userId: number
-
+  readonly userId: number;
 }
