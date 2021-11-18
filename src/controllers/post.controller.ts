@@ -1,10 +1,10 @@
 import { plainToClass } from 'class-transformer';
 import { Request, Response } from 'express';
-import { CreatePostDto } from '../models/posts/request/create.post';
-import { UpdatePostDto } from '../models/posts/request/update.post';
-import { GobalPostDto } from '../models/posts/response/global.post.dto';
-import { OwnPostDto } from '../models/posts/response/own.post.dto';
-import { ReactionPostDto } from '../models/posts/response/reaction.post';
+import { CreatePostDto } from '../models/posts/request/create-post.dto';
+import { UpdatePostDto } from '../models/posts/request/update-post.dto';
+import { GobalPostDto } from '../models/posts/response/global-post.dto';
+import { OwnPostDto } from '../models/posts/response/own-post.dto';
+import { ReactionPostDto } from '../models/posts/response/reaction-post.dto';
 import { PostService } from '../services/post.service';
 
 const createPost = async (req: Request, res: Response): Promise<void> => {
@@ -25,7 +25,7 @@ const getPostList = async (req: Request, res: Response): Promise<void> => {
 };
 
 const getAPost = async (req: Request, res: Response): Promise<void> => {
-  const post = await PostService.getDeterminedPost(parseInt(req.params.postId));
+  const post = await PostService.getPostById(parseInt(req.params.postId));
 
   res.status(200).json(plainToClass(GobalPostDto, post));
 };
@@ -44,7 +44,7 @@ const getMyPost = async (req: Request, res: Response): Promise<void> => {
 
 const updatePost = async (req: Request, res: Response): Promise<void> => {
   const dto = plainToClass(UpdatePostDto, req.body);
-  dto.isValid();
+  await dto.isValid();
 
   const postUpdated = await PostService.update(
     parseInt(req.params.postId),

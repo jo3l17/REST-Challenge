@@ -10,17 +10,17 @@ import {
   verifyUser,
 } from '../controllers/user.controller';
 import asyncHandler from 'express-async-handler';
-import { protect } from '../middleware/auth.middleware';
+import { authMiddleware } from '../middleware/auth.middleware';
 
 const userRoute = Router();
 
 userRoute
-  .get('/me', protect, asyncHandler(getUser))
+  .get('/me', authMiddleware, asyncHandler(getUser))
   .get('/:id', asyncHandler(getUser))
   .post('/passwords/recovery', asyncHandler(passwordRecover))
   .patch('/:token/verify', asyncHandler(verifyUser))
   .patch('/passwords/:token', asyncHandler(passwordChange))
-  .patch('/email', protect, asyncHandler(emailChange))
+  .patch('/email', authMiddleware, asyncHandler(emailChange))
   .patch('/email/:token', asyncHandler(verifyNewEmail));
 
 export { userRoute };

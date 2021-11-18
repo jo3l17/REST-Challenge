@@ -1,15 +1,15 @@
 import { plainToClass } from 'class-transformer';
 import { Request, Response } from 'express';
-import { CreateCommentDto } from '../models/comments/request/create.comment';
-import { UpdateCommentDto } from '../models/comments/request/update.comment';
-import { GlobalCommentDto } from '../models/comments/response/global.comment';
-import { OwnCommentDto } from '../models/comments/response/own.comment';
-import { ReactionCommentDto } from '../models/comments/response/reaction.comment';
+import { CreateCommentDto } from '../models/comments/request/create-comment.dto';
+import { UpdateCommentDto } from '../models/comments/request/update-comment.dto';
+import { GlobalCommentDto } from '../models/comments/response/global-comment.dto';
+import { OwnCommentDto } from '../models/comments/response/own-comment.dto';
+import { ReactionCommentDto } from '../models/comments/response/reaction-comment.dto';
 import { CommentService } from '../services/comment.service';
 
 const createComment = async (req: Request, res: Response): Promise<void> => {
   const dto = plainToClass(CreateCommentDto, req.body);
-  dto.isValid();
+  await dto.isValid();
 
   const comment = await CommentService.create(
     req.accountId,
@@ -52,7 +52,7 @@ const getListComments = async (req: Request, res: Response): Promise<void> => {
 
 const updateComment = async (req: Request, res: Response): Promise<void> => {
   const dto = plainToClass(UpdateCommentDto, req.body);
-  dto.isValid;
+  await dto.isValid();
 
   const comment = await CommentService.update(
     parseInt(req.params.commentId),

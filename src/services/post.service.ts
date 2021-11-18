@@ -1,17 +1,14 @@
 import { Actions, Post, PrismaClient } from '.prisma/client';
 import { plainToClass } from 'class-transformer';
-import { CreatePostDto } from '../models/posts/request/create.post';
-import { UpdatePostDto } from '../models/posts/request/update.post';
-import { FetchActionPostDto } from '../models/posts/response/fetch.action.post';
+import { CreatePostDto } from '../models/posts/request/create-post.dto';
+import { UpdatePostDto } from '../models/posts/request/update-post.dto';
+import { FetchActionPostDto } from '../models/posts/response/fetch-action-post.dto';
 
 const prisma = new PrismaClient();
 
 class PostService {
-  static create = async (
-    accountId: number,
-    body: CreatePostDto,
-  ): Promise<Post> => {
-    return await prisma.post.create({
+  static create = (accountId: number, body: CreatePostDto): Promise<Post> => {
+    return prisma.post.create({
       data: {
         title: body.title,
         content: body.content,
@@ -25,17 +22,11 @@ class PostService {
     });
   };
 
-  static getPublicPosts = async (accountId?: number): Promise<Post[]> => {
-    return await prisma.post.findMany({
+  static getPublicPosts = (accountId?: number): Promise<Post[]> => {
+    return prisma.post.findMany({
       where: {
-        AND: [
-          {
-            published: {
-              equals: true,
-            },
-            accountId: accountId ? accountId : undefined,
-          },
-        ],
+        published: true,
+        accountId: accountId ? accountId : undefined,
       },
     });
   };
@@ -43,12 +34,12 @@ class PostService {
   static getAllMyPosts = async (accountId: number): Promise<Post[]> => {
     return prisma.post.findMany({
       where: {
-        accountId: accountId,
+        accountId,
       },
     });
   };
 
-  static getDeterminedPost = async (postId: number): Promise<Post> => {
+  static getPostById = async (postId: number): Promise<Post> => {
     const post = await prisma.post.findFirst({
       where: {
         id: {
@@ -131,7 +122,7 @@ class PostService {
     postId: number,
     action: string,
   ): Promise<Post> => {
-    this.getDeterminedPost(postId);
+    this.getPostById(postId);
 
     const actionByAccount = await prisma.postLike.findFirst({
       select: {
@@ -139,16 +130,8 @@ class PostService {
         type: true,
       },
       where: {
-        AND: [
-          {
-            accountId: {
-              equals: accountId,
-            },
-            postId: {
-              equals: postId,
-            },
-          },
-        ],
+        accountId,
+        postId
       },
     });
 
@@ -191,7 +174,7 @@ class PostService {
         likedBy: {
           create: {
             type: newAction,
-            accountId: accountId,
+            accountId,
           },
         },
       },

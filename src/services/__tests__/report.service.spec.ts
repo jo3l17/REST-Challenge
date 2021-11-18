@@ -1,6 +1,6 @@
 import { Account, Post, PrismaClient, Report, User } from '.prisma/client';
 import { plainToClass } from 'class-transformer';
-import { CreateReportDto } from '../../models/reports/request/create.report.dto';
+import { CreateReportDto } from '../../models/reports/request/create-report.dto';
 import { ReportService } from '../report.service';
 
 jest.mock('../../utils/sendgrid.util');

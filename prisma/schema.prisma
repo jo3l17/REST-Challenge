@@ -11,104 +11,119 @@ generator client {
 }
 
 model User {
-  id              Int @id @default(autoincrement())
-  name            String @db.VarChar(50)
-  email           String @unique
-  temporalEmail   String?
-  password        String
-  verifiedAt      DateTime?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime? @updatedAt
-  role            Role @default(user)
-  tokens          Token[]
-  account         Account?
+  id            Int       @id @default(autoincrement())
+  name          String    @db.VarChar(50)
+  email         String    @unique
+  temporalEmail String?   @map("temporal_email")
+  password      String
+  verifiedAt    DateTime? @map("verified_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime? @updatedAt @map("updated_at")
+  role          Role      @default(user)
+  tokens        Token[]
+  account       Account?
+
+  @@map("user")
 }
 
 model Account {
-  id              Int @id @default(autoincrement())
-  isEmailPublic   Boolean @default(false)
-  isNamePublic    Boolean @default(false)
-  posts           Post[]
-  comments        Comment[]
-  user            User @relation(fields: [userId],references: [id], onDelete:Cascade)
-  userId          Int @unique
-  reports         Report[]
-  postLikes       PostLike[]
-  commentLikes    CommentLike[]
+  id            Int           @id @default(autoincrement())
+  isEmailPublic Boolean       @default(false) @map("is_email_public")
+  isNamePublic  Boolean       @default(false) @map("is_name_public")
+  posts         Post[]
+  comments      Comment[]
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        Int           @unique @map("user_id")
+  reports       Report[]
+  postLikes     PostLike[]
+  commentLikes  CommentLike[]
+
+  @@map("account")
 }
 
 model Token {
-  id              Int @id @default(autoincrement())
-  token           String
-  expirationDate  DateTime
-  createdAt       DateTime @default(now())
-  user            User @relation(fields: [userId],references: [id], onDelete:Cascade)
-  userId          Int
+  id             Int      @id @default(autoincrement())
+  token          String
+  expirationDate DateTime @map("expiration_date")
+  createdAt      DateTime @default(now()) @map("created_at")
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         Int      @map("user_id")
+
+  @@map("token")
 }
 
 model Post {
-  id              Int @id @default(autoincrement())
-  title           String @db.VarChar(100)
-  content         String
-  published       Boolean
-  likes           Int @default(0)
-  dislikes        Int @default(0)
-  likedBy         PostLike[]
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime? @updatedAt
-  account         Account @relation(fields: [accountId],references: [id], onDelete:Cascade)
-  accountId       Int
-  comments        Comment[]
-  reports         Report[]
+  id        Int        @id @default(autoincrement())
+  title     String     @db.VarChar(100)
+  content   String
+  published Boolean
+  likes     Int        @default(0)
+  dislikes  Int        @default(0)
+  likedBy   PostLike[]
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime?  @updatedAt @map("updated_at")
+  account   Account    @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  accountId Int        @map("account_id")
+  comments  Comment[]
+  reports   Report[]
+
+  @@map("post")
 }
 
 model PostLike {
-  id              Int @id @default(autoincrement())
-  account         Account @relation(fields: [accountId],references: [id], onDelete: Cascade)
-  accountId       Int
-  post            Post @relation(fields: [postId],references: [id], onDelete: Cascade)
-  postId          Int
-  type            Actions
+  id        Int     @id @default(autoincrement())
+  account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  accountId Int     @map("account_id")
+  post      Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId    Int     @map("post_id")
+  type      Actions
+
+  @@map("post_like")
 }
 
 model Comment {
-  id              Int @id @default(autoincrement())
-  content         String
-  published       Boolean
-  likes           Int @default(0)
-  dislikes        Int @default(0)
-  likedBy         CommentLike[]
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime? @updatedAt
-  account         Account @relation(fields: [accountId],references: [id], onDelete: Cascade)
-  accountId       Int
-  post            Post @relation(fields: [postId],references: [id], onDelete: Cascade)
-  postId          Int
-  reports         Report[]
+  id        Int           @id @default(autoincrement())
+  content   String
+  published Boolean
+  likes     Int           @default(0)
+  dislikes  Int           @default(0)
+  likedBy   CommentLike[]
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime?     @updatedAt @map("updated_at")
+  account   Account       @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  accountId Int           @map("account_id")
+  post      Post          @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId    Int           @map("post_id")
+  reports   Report[]
+
+  @@map("comment")
 }
 
 model CommentLike {
-  id              Int @id @default(autoincrement())
-  account         Account @relation(fields: [accountId],references: [id], onDelete: Cascade)
-  accountId       Int
-  comment         Comment @relation(fields: [commentId],references: [id], onDelete: Cascade)
-  commentId       Int
-  type            Actions
+  id        Int     @id @default(autoincrement())
+  account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  accountId Int     @map("account_id")
+  comment   Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  commentId Int     @map("comment_id")
+  type      Actions
+
+  @@map("comment_like")
 }
 
+model Report {
+  id        Int        @id @default(autoincrement())
+  title     String     @db.VarChar(100)
+  content   String
+  type      ReportType
+  createdAt DateTime   @default(now())
+  comment   Comment?   @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  commentId Int?       @map("comment_id")
+  post      Post?      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId    Int?       @map("post_id")
+  account   Account    @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  accountId Int        @map("account_id")
 
-model Report {   
-  id              Int @id @default(autoincrement())
-  title           String @db.VarChar(100)
-  content         String
-  type            ReportType
-  createdAt       DateTime @default(now())
-  comment         Comment? @relation(fields: [commentId],references: [id], onDelete: Cascade)
-  commentId       Int?
-  post            Post? @relation(fields: [postId],references: [id], onDelete: Cascade)
-  postId          Int?
-  account         Account @relation(fields: [accountId],references: [id], onDelete: Cascade)
-  accountId       Int
+  @@map("report")
 }
 
 enum Actions {

@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import AuthService from '../services/auth.service';
 import UserService from '../services/user.service';
 
-const protect = async (
+const authMiddleware = async (
   req: Request,
   res: Response,
   next: NextFunction,
@@ -19,11 +19,11 @@ const protect = async (
     return res.status(401).json({ message: 'no user' });
   }
 
-  req.user = { ...user };
+  req.user = user;
   if (payload.accountId) {
     req.accountId = payload.accountId;
   }
   next();
 };
 
-export { protect };
+export { authMiddleware };

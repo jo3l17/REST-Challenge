@@ -1,8 +1,8 @@
 import { Account, Post, PrismaClient, User } from '.prisma/client';
 import { plainToClass } from 'class-transformer';
 import createHttpError from 'http-errors';
-import { CreatePostDto } from '../../models/posts/request/create.post';
-import { UpdatePostDto } from '../../models/posts/request/update.post';
+import { CreatePostDto } from '../../models/posts/request/create-post.dto';
+import { UpdatePostDto } from '../../models/posts/request/update-post.dto';
 import { PostService } from '../post.service';
 
 jest.mock('http-errors', () => {
@@ -133,7 +133,7 @@ describe('Post Service', () => {
   });
 
   it('should return a specific public post of an account', async () => {
-    const result = await PostService.getDeterminedPost(publicPost.id);
+    const result = await PostService.getPostById(publicPost.id);
     expect(result.id == publicPost.id).toBeTruthy();
   });
 

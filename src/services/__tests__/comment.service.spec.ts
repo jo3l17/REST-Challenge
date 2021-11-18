@@ -1,8 +1,8 @@
 import { Account, Comment, Post, PrismaClient, User } from '.prisma/client';
 import { plainToClass } from 'class-transformer';
 import createHttpError from 'http-errors';
-import { CreateCommentDto } from '../../models/comments/request/create.comment';
-import { UpdateCommentDto } from '../../models/comments/request/update.comment';
+import { CreateCommentDto } from '../../models/comments/request/create-comment.dto';
+import { UpdateCommentDto } from '../../models/comments/request/update-comment.dto';
 import { CommentService } from '../comment.service';
 
 jest.mock('http-errors', () => {

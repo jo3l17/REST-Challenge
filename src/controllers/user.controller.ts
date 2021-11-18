@@ -3,7 +3,7 @@ import AuthService from '../services/auth.service';
 import UserService from '../services/user.service';
 
 const getUser = async (req: Request, res: Response): Promise<Response> => {
-  const id = parseInt(req.params.id) || req.body.user.id;
+  const id = parseInt(req.params.id) || req.user.id;
   const user = await UserService.findById(id);
 
   return res.status(200).json(user);
@@ -18,7 +18,7 @@ const verifyUser = async (req: Request, res: Response): Promise<Response> => {
 };
 
 const emailChange = async (req: Request, res: Response): Promise<Response> => {
-  const id = req.body.user.id;
+  const id = req.user.id;
   const { email } = req.body;
   await UserService.createTemporalEmail(id, email);
 

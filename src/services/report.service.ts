@@ -1,7 +1,7 @@
 import { PrismaClient, Report, ReportType } from '.prisma/client';
 import { plainToClass } from 'class-transformer';
-import { CreateReportDto } from '../models/reports/request/create.report.dto';
-import { FetchReportsDto } from '../models/reports/response/fetch.reports.dto';
+import { CreateReportDto } from '../models/reports/request/create-report.dto';
+import { FetchReportsDto } from '../models/reports/response/fetch-reports.dto';
 import { createReport, sgMail } from '../utils/sendgrid.util';
 
 const prisma = new PrismaClient();
@@ -46,8 +46,8 @@ class ReportService {
     await sgMail.send(msg);
   };
 
-  static deleteReport = async (reportId: number): Promise<Report> => {
-    return await prisma.report.delete({
+  static deleteReport = (reportId: number): Promise<Report> => {
+    return prisma.report.delete({
       where: {
         id: reportId,
       },

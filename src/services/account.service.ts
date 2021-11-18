@@ -1,6 +1,6 @@
 import { Account, PrismaClient } from '.prisma/client';
 import createHttpError from 'http-errors';
-import { accountData } from '../models/account.model';
+import { accountData } from '../models/account-model';
 import { UpdateAccountDto } from '../models/account/request/update-account.dto';
 import { AccountDto } from '../models/account/response/account.dto';
 

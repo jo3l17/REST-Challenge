@@ -1,6 +1,6 @@
 import { PrismaClient, Role, User } from '.prisma/client';
 import createHttpError from 'http-errors';
-import { userPersonalData } from '../models/user.model';
+import { userPersonalData } from '../models/user-model';
 import { CreateUserDto } from '../models/users/request/create-user.dto';
 import { UserMiddlewareDto } from '../models/users/response/user-middleware.dto';
 import { UserDto } from '../models/users/response/user.dto';
@@ -12,13 +12,13 @@ const prisma = new PrismaClient();
 
 class UserService {
   static create = async (data: CreateUserDto): Promise<User> => {
-    const HASH = await AuthService.hashPassword(data.password);
+    const hash = await AuthService.hashPassword(data.password);
     const user = await prisma.user.create({
       data: {
         email: data.email,
         name: data.name,
         role: data.role,
-        password: HASH,
+        password: hash,
       },
     });
     return user;

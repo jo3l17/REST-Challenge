@@ -1,17 +1,17 @@
 import { Actions, Comment, PrismaClient } from '.prisma/client';
 import { plainToClass } from 'class-transformer';
-import { CreateCommentDto } from '../models/comments/request/create.comment';
-import { FetchActionCommentDto } from '../models/comments/response/fetch.action.comment';
+import { CreateCommentDto } from '../models/comments/request/create-comment.dto';
+import { FetchActionCommentDto } from '../models/comments/response/fetch-action-comment.dto';
 
 const prisma = new PrismaClient();
 
 class CommentService {
-  static create = async (
+  static create = (
     accountId: number,
     postId: number,
     body: CreateCommentDto,
   ): Promise<Comment> => {
-    return await prisma.comment.create({
+    return prisma.comment.create({
       data: {
         content: body.content,
         published: body.published,
@@ -29,16 +29,16 @@ class CommentService {
     });
   };
 
-  static read = async (accountId: number): Promise<Comment[]> => {
-    return await prisma.comment.findMany({
+  static read = (accountId: number): Promise<Comment[]> => {
+    return prisma.comment.findMany({
       where: {
         accountId: accountId,
       },
     });
   };
 
-  static getDeterminedComment = async (commentId: number): Promise<Comment> => {
-    return await prisma.comment.findFirst({
+  static getDeterminedComment = (commentId: number): Promise<Comment> => {
+    return prisma.comment.findFirst({
       where: {
         id: {
           equals: commentId,
@@ -140,16 +140,8 @@ class CommentService {
         type: true,
       },
       where: {
-        AND: [
-          {
-            accountId: {
-              equals: accountId,
-            },
-            commentId: {
-              equals: commentId,
-            },
-          },
-        ],
+        accountId,
+        commentId,
       },
     });
 
@@ -194,7 +186,7 @@ class CommentService {
         likedBy: {
           create: {
             type: newAction,
-            accountId: accountId,
+            accountId,
           },
         },
       },

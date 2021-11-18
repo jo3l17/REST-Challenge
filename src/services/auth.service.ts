@@ -21,11 +21,11 @@ import { UserDto } from '../models/users/response/user.dto';
 const prisma = new PrismaClient();
 
 class AuthService {
-  static validatePassword = async (
+  static validatePassword = (
     dataPassword: string,
     userPassword: string,
   ): Promise<boolean> => {
-    return await bcrypt.compare(dataPassword, userPassword);
+    return bcrypt.compare(dataPassword, userPassword);
   };
 
   static createToken = async (data: jwtData): Promise<TokenResponseDto> => {
@@ -90,7 +90,7 @@ class AuthService {
     const newToken = await this.updateToken(tokenToUpdate.id, user.id);
     const msg = createEmail(
       user.email,
-      `token signup`,
+      'token signup',
       `Hello ${user.name} use patch to this url to verify your account`,
       `http://${HOST}/users/${newToken.token}/verify`,
       newToken.token,
@@ -144,7 +144,7 @@ class AuthService {
     });
     const msg = createEmail(
       data.email,
-      `token signup`,
+      'token signup',
       `Hello ${data.name} use patch to this url to verify your account`,
       `http://${HOST}/users/${token.token}/verify`,
       token.token,
@@ -184,7 +184,7 @@ class AuthService {
     });
     const msg = createEmail(
       user.email,
-      `Password Recover`,
+      'Password Recover',
       `Hello ${user.name} use patch to this url to change you password with your new password`,
       `http://${HOST}/users/passwords/${token}`,
       token,
